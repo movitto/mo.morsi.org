@@ -1,0 +1,23 @@
+---
+title: Table Of Contents
+---
+
+<div class="article">
+  <h2>Table Of Contents</h2>
+
+  <div id="toc_content" style="float: left; width: 45%;">
+    <ul>
+    <% blog.articles.each_with_index do |article, i| %>
+      <li>
+        <%= link_to article.title, article %> - <%= article.date.strftime("%D") %>
+      </li>
+    <% end %>
+    </ul>
+  </div>
+
+  <div id="toc_img" style="float: right; width: 45%">
+    <%= image_tag "Samurai-Monkey-Shakespeare_art.jpg" %>
+  </div>
+
+  <div style="clear: both"></div>
+</div>

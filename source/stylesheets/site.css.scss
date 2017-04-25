@@ -1,12 +1,17 @@
 body {
-  background-color: #fbc547;
-  color: #333;
+  background-color: black;
+  color: #0D0C1C;
   font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", "Avenir",
     "Segoe UI", "Lucida Grande", "Helvetica Neue", "Helvetica", "Fira Sans",
     "Roboto", "Noto", "Droid Sans", "Cantarell", "Oxygen", "Ubuntu",
     "Franklin Gothic Medium", "Century Gothic", "Liberation Sans", sans-serif;
-  padding: 18vh 1rem;
-  text-align: center;
+  margin: 0;
+}
+
+#matrix_output{
+ position: fixed;
+ top: 0;
+ z-index: -1;
 }
 
 a {
@@ -21,4 +26,104 @@ a {
 .middleman-logo {
   margin-bottom: 1rem;
   width: 10rem;
+}
+
+.article{
+ padding: 5px 10px 10px 15px;
+ margin: 10px;
+ background-color: white;
+ box-shadow: 0 0 10px gray;
+ width: 75%;
+ border-radius: 5px;
+}
+
+#nav{
+  color: #D8DAE7;
+  position: fixed;
+  top: 0;
+  right: 0;
+  border: 1px solid green;
+  border-radius: 15px;
+  padding: 5px;
+  margin: 5px;
+  background-color: #0C141F;
+}
+
+#page_nav {
+  background-color: #0C141F;
+  color: #D8DAE7;
+  display: inline-block;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-radius: 5px;
+  border: 1px solid green;
+  position: fixed;
+  bottom: 0px;
+  right: 3px;
+}
+
+#nav a{
+  color: #D8DAE7;
+  text-decoration: none;
+}
+
+#page_nav a{
+  color: #D8DAE7;
+  text-decoration: none;
+}
+
+.nav_item {
+  padding-left: 10px;
+  text-align: right;
+  display: block;
+  font-size: 1.25em;
+}
+
+#nav h1{
+  font-family: Orbitron;
+  font-size: 2.25em;
+  padding-right: 10px;
+  margin: 0px;
+}
+
+.article-date {
+  float: right;
+  margin-left: 10px;
+}
+
+.article-date span {
+  width: 100px;
+  display: block;
+  font: 18px/24px "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: #666;
+  text-align: center;
+}
+
+.article-date .month {
+  background: #ccc;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+.article-date .day {
+  font-size: 44px;
+  line-height: 50px;
+  background: #333;
+  color: #eee;
+  text-shadow: 2px 2px 2px #888;
+}
+
+.article-date .year {
+  background: #ccc;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+.article-date .sep {
+  display: none;
+}
+
+.hljs{
+  white-space: pre;
+  padding-bottom: 15px;
 }
