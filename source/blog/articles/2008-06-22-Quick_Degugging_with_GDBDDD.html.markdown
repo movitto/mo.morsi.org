@@ -1,0 +1,12 @@
+---
+title: Quick Degugging with GDB/DDD
+date: 2008-06-22
+---
+
+As I started to get back into lower level / compiled languages for work (starting to hack on <a href="http://libvirt.org">libvirt</a>) and personal side projects, I needed to more efficiently debug my applications and libraries, as printf's don't cut it and the command line gdb iterface was getting annoying (*gasp* I know, its a first, my desire to use a gui over the command line ;-] ). The <a href="http://www.gnu.org/software/ddd/">Data Display Debugger (DDD)</a> is a great frontend to GDB and is a cinch to use. Simply append "-g" to the gcc/g++ command you run to enable debugging output (or append "-g" to the "AM_CXXFLAGS" directive if using Automake) and then compile. Next you will have to run the generated executable (really a wrapper shell script which finalizes the compilation and linking process) at least once to generate the true binary (named lt-<i>name</i> in the <i>.libs/</i> subdirectory). Use ddd to debug this executable by running  <i>ddd .libs/lt-name</i> (ddd can be install via any major distro repo)<br/>
+
+From here we will see our main application in the top area, in which we can set breakpoints and visualize the code as it executes. In the bottom window we see the gdb console, should we ever need to input commands manually. We can navigate any source files or other data definitions via the lookup text box at the top. Note that source code and definitions from shared libraries will not be accessible until the program is run at least once (not only that, but each of these libraries will need to have been compiled w/ debugging information enabled, eg "-g"). 
+
+As we set breakpoints and run the code (clicking run on the control panel on the right), execution stops where we desire and we can inspect all variables and data by hovering the mouse over variable names, right clicking and displaying them, and using the gdb console to print out and alter data, and call routines. Clicking 'Next' will go through the code in the current file, executing calls to other routines and modules, but not entering them via the debugger. Clicking 'Step' will enter all the calls it can (if debugging output isn't enabled or the source isn't available, it can only proceed so far).
+
+You should now have a basic handle of how to debug applications from GDB/DDD. From here, you can dive in as deep as you need fully understand and evaluate your code at hand.

@@ -1,0 +1,30 @@
+---
+title: Redmine Plugins
+date: 2011-09-05
+---
+
+<%= image_tag "redmine_cart.png", :style => "margin-right: 10px; float: left" %>For the <a href="http://www.aeolusproject.org">aeolus</a> project. we use a  <a href="http://redmine.org">redmine</a> <a href="http://www.aeolusproject.org/redmine">instance</a> as our main project management / issue tracking platform. The nice thing about this is that it's a very extensible framework, allowing us to modify it to suite our needs.
+
+<p>
+I just threw together / pushed a few redmine plugins to our installation to help satisfy a few missing pieces
+</p>
+
+<p>
+<a href="https://github.com/movitto/redmine_blogroll">redmine_blogroll</a>
+A rss/atom feed aggregation plugin used to generate the official aeolus blogroll. Currently deployed <a href="https://www.aeolusproject.org/redmine/blogroll?project_id=aeolus">here</a>
+</p>
+
+<p>
+<a href="https://github.com/movitto/redmine_static">redmine_static</a>
+A means which to upload static html content to redmine. Use this one with caution, only grant trusted users the ability to manage static content. Currently deployed <a href="https://www.aeolusproject.org/redmine/static?project_id=aeolus">here</a>
+</p>
+
+
+<p>
+<a href="https://github.com/movitto/patchmine">redmine_patchmine</a>
+A patch tracker plugin which takes patches from our list, associates them with redmine issues, and updates those issues depending on comments and any ACKs/NACKs. Also am planning on providing a better interface to visualize and generate reports for these patches.
+</p>
+
+<p>
+Patchmine is still in development, but should have something on the public website soon. Any patches to any of these plugins are more than welcome.
+</p>

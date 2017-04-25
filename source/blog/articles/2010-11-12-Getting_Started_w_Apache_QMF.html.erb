@@ -1,0 +1,136 @@
+---
+title: Getting Started w/ Apache QMF
+date: 2010-11-12
+---
+
+<p>
+The <a href="http://qpid.apache.org/qpid-management-framework.html">Qpid Management Framework</a> is a powerful open source <a href="http://en.wikipedia.org/wiki/Remoting">remoting</a> framework which developers can use to query and invoke methods on managed objects residing on a remote host. As with most other things its fairly straightforward to use when you know it, but it is currently still relatively early in development, and thus there isn't a whole lot of great documentation out there. 
+</p>
+
+<p>
+To start of, you should read <a href="http://qpid.apache.org/qpid-management-framework.html">this document</a> thoroughly to familiarize yourself with all the necessary terms. In a gist, a developer will write an 'agent' who is responsible for dispatching requests to managed objects locally, returning results as neccessary. The objects provided and associated properties/methods are detailed via a 'schema'. The agent will register the object classes that it is managing with a 'broker' who is responsible for establishing and maintaining the communication channels, locating the correct agent when a client, known as a 'console', makes a request for a certain object class. With Apache QMF, the Apache QPID daemon also provides QMF broker functionality.
+</p>
+
+<p>
+I've written and attached a sample QMF agent/console I've written for anyone who'se looking to start off. It is based of the more complete/robust <a href="http://git.et.redhat.com/?p=ovirt-server.git;a=tree;f=src/ovirt-agent;hb=refs/heads/next">ovirt-agent</a> (though simplified greatly since its a new developer tutorial), and confusingly enough the agent was written using the Ruby QMF module while the console was written using Ruby QPID::QMF (see my findings on the difference <a href="http://mohammed.morsi.org/blog/?q=node/288">here</a>, I went this way since the example I'm basing this off of, ovirt-agent, does as well).
+</p>
+
+<% code("ruby") do %>
+######################################## Agent
+
+#!/usr/bin/ruby
+#
+# Simple QMF Agent Example
+
+require 'qmf'
+
+# class which will do the work 
+# we need for our application
+class Widget
+ public
+  attr_accessor :socket
+  def initialize
+     @socket = "foo"
+  end
+
+  def do_something(data)
+     puts "doing something with " + data.to_s
+  end
+end
+
+# setup the Widget Qmf schema
+# -or- use something like 
+#  http://git.et.redhat.com/?p=ovirt-server.git;a=blob;f=src/ovirt-agent/lib/ovirt/schema_parser.rb
+$widget_schema = Qmf::SchemaObjectClass.new("org.morsi.test", "Widget")
+$widget_schema.add_property(Qmf::SchemaProperty.new("socket", Qmf::TYPE_SSTR))
+$do_something_schema = Qmf::SchemaMethod.new("do_something")
+$do_something_schema.add_argument(Qmf::SchemaArgument.new("data", Qmf::TYPE_SSTR, {:dir => Qmf::DIR_IN}))
+$widget_schema.add_method($do_something_schema)
+
+# will handle incoming requests for objects and method invocations
+class WidgetAgent < Qmf::AgentHandler
+
+   # implementation of Qmf::AgentHandler.get_query callback
+   # called when a client requests an object
+   def get_query(context, query, user_id)
+      puts "Query: context=#{context} class=#{query.class_name} object_id=#{query.object_id} user_id=#{user_id}"
+
+      # !!! you should actually handle get_query here, by using the specified 
+      # class_name and query attributes to lookup and return matching objects
+      widget = Widget.new
+      obj = Qmf::AgentObject.new($widget_schema)
+      obj[:socket] = widget.socket
+      obj.set_object_id(@agent.alloc_object_id)
+
+      # get_query must perform these steps to return the response
+      @agent.query_response(context, obj)
+      @agent.query_complete(context)
+   end
+
+   # implementation of Qmf::AgentHandler.method_call callback
+   # called when a client invokes a method on an object
+   def method_call(context, name, object_id, args, user_id)
+      puts "Method: context=#{context} method=#{name} object_id=#{object_id}, args=#{args} user_id=#{user_id}"
+
+      # !!! you should actually handle method_call here, by using the speicifed
+      # class_name, object_id, and method name / args to invoke the correct method
+      # on the correct object
+      Widget.new.do_something(args["data"])
+
+      @agent.method_response(context, 0, "OK", args)
+   end
+
+   def initialize
+      # connect to specified broker & register self as agent handler
+      @settings = Qmf::ConnectionSettings.new
+      @settings.host = "localhost"
+      #@settings.port = port
+      @connection = Qmf::Connection.new(@settings)
+      @agent = Qmf::Agent.new(self)
+
+      # register classes that we provide
+      @agent.register_class($widget_schema)
+    end
+
+  def mainloop
+    Thread.abort_on_exception = true
+    @agent.set_connection(@connection)
+    sleep
+  end
+end
+
+widget_agent = WidgetAgent.new
+widget_agent.mainloop
+
+
+######################################## Console
+
+#!/usr/bin/ruby
+#
+# Simple QMF Console Example
+
+require 'qpid'
+
+@session = Qpid::Qmf::Session.new
+@session.add_broker
+@session.objects(:class => "queue", 
+                 :package => "org.apache.qpid.broker").each { |q|
+  puts "Queue " + q.to_s
+}
+
+widgets = @session.objects(:class => "Widget", 
+                           :package => "org.morsi.test")
+widgets.each { |w|
+  puts "Widget " + w.to_s + " " + w.socket.to_s
+  for (key, val) in w.properties
+    puts "    property: #{key}, #{val}"
+  end
+  result = w.do_something('4.20')
+}
+
+########################################
+<% end %>
+
+<p>
+Check this blog again (or subscribe to the <a href="http://mohammed.morsi.org/blog/?q=rss.xml">feed</a>) for more about qmf in the future. Enjoy!
+</b>

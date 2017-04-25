@@ -1,0 +1,112 @@
+---
+title: GTK Programming w/ Python
+date: 2012-03-03
+---
+
+<%= image_tag "pygtk.jpg", :alt => "mmorsi-presentation", :style => "width: 700px; height: 250px;" %>
+
+<p>
+This Wednesday, I will be giving a talk at the March <a href="http://syrlug.org">Syracuse Linux Users Group</a> meeting on Programming <a href="http://www.gtk.org/index.php">GTK</a> interfaces w/ <a href="http://www.pygtk.org/">PyGTK</a> (along w/ <a href="http://glade.gnome.org/">Glade</a> and <a href="http://live.gnome.org/GObjectIntrospection">GOBject Introspection</a>). You can find my presentation <a href="http://mo.morsi.org/files/presentations/syrlug-pygtk/presentation/static/">here</a>, which I made with <a href="https://github.com/schacon/showoff">showoff</a> (source <a href="http://mo.morsi.org/files/presentations/syrlug-pygtk/presentation.tgz">here</a>, more on this in a subsequent blogpost) and is probably my most <i>ahem</i> interesting presentation to this date (at least I like to think so ;-) ).
+</p>
+
+<p>
+As far as the $topic matter itself, cross-platform GUI development has never been easier due to a few simple tools. GTK is available on many platforms, and using Glade you can easily whip up an interface that suites your needs. Wiring up event handlers and the backend code is a cinch due to the gobject bindings which gtk provides that we are able to leverage from a Python app.
+</p>
+
+<%= image_tag "glade2.png", :style => "width: 700px; height: 500px;", :alt => "glade" %>
+
+<p>
+Along w/ the presentation I'm planning on giving a quick demo on how to perform these steps, creating a simple Desktop based twitter client. You can download the glade xml file <a href="http://mo.morsi.org/files/presentations/syrlug-pygtk/final/layout.glade">here</a> and the python app <a href="http://mo.morsi.org/files/presentations/syrlug-pygtk/final/syrlug_demo.py">itself</a> (also see below). Simply run it with <i>$ python syrlug_demo.py</i> but note you will need to have the python twitter library installed (<i># sudo yum install python-twitter</i> on Fedora).
+</p>
+
+<%= image_tag "screenshot-syrlug_demo.py.png", :alt => "demo interface" %>
+
+<p>
+Of course this is just the beginning, you can easily expand the interface by editing the XML in Glade and adding new event handlers to the Python script to do whatever you would like.
+</p>
+
+<% code("python") do %>
+import os
+import time
+import threading
+import twitter
+from gi.repository import Gtk, Gdk, GObject
+
+INPUT_TEXT='twitter username'
+
+GLADE_FILE = os.path.join(os.path.dirname( __file__ ), 'layout.glade')
+
+# A worker thread to get twitter data
+class WorkerThread(threading.Thread):
+    terminate = False
+    twitter_username = None
+    twitter_text = ''
+
+    def set_buffer(self, buffer):
+      self.buffer = buffer
+
+    def run(self):
+       while(not self.terminate):
+         api = twitter.Api()
+         self.twitter_text = ''
+         if self.twitter_username != None:
+           try:
+             for status in api.GetUserTimeline(self.twitter_username):
+               self.twitter_text += status.text + "\n"
+           except:
+             pass
+           Gdk.threads_enter()
+           self.buffer.set_text(self.twitter_text)
+           Gdk.threads_leave()
+         time.sleep(5)
+
+# The Main Window
+class SyrlugDemoWindow:
+    def __init__(self):
+       self.builder = Gtk.Builder() 
+       self.builder.add_objects_from_file(GLADE_FILE, ["syrlug_demo", "twitter_username", "twitter_text"])
+       self.window = self.builder.get_object("syrlug_demo") 
+       self.username_input = self.builder.get_object("twitter_username") 
+
+       self.username_input.set_text(INPUT_TEXT)
+
+       self.worker = WorkerThread()
+       self.worker.set_buffer(self.builder.get_object("twitter_text").get_buffer());
+       self.worker.start()
+
+       self.builder.connect_signals(self)
+       self.window.connect("destroy", self.close_window)
+       self.window.show()
+
+    def close_window(self, widget):
+        self.worker.terminate = True
+        Gtk.main_quit()
+
+    def subscribe_button_clicked(self, widget):
+        input_text = self.username_input.get_text() 
+        if input_text != INPUT_TEXT and input_text != "":
+            self.worker.twitter_username = input_text
+
+    def twitter_username_focus_in(self, widget, param):
+        if widget.get_text() == INPUT_TEXT:
+            widget.set_text("")
+            #widget.set_visibility(False)
+
+    def twitter_username_focus_out(self, widget, param):
+        if widget.get_text() == "":
+            widget.set_text(INPUT_TEXT)
+            #widget.set_visibility(True)
+
+if __name__ == "__main__":
+    # initialize window
+    win = SyrlugDemoWindow()
+
+    # start gtk loop
+    Gdk.threads_init()
+    GObject.threads_init()
+    Gdk.threads_enter()
+    Gtk.main()
+    Gdk.threads_leave()
+<% end %>
+
+Now lets see some of those GTK apps!

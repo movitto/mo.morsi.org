@@ -1,0 +1,9 @@
+---
+title: WTFPL
+date: 2009-08-05
+---
+
+Someone sent this to me today and with all the recent licensing talk I just had to pass it along :-D 
+
+<b>Warning explicit language</b>
+<a href="http://en.wikipedia.org/wiki/WTFPL">WTFPL</a>

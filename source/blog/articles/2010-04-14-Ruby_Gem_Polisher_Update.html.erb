@@ -1,0 +1,48 @@
+---
+title: Ruby Gem Polisher Update
+date: 2010-04-14
+---
+
+<%= image_tag "polisher.jpg", :style => "float:right; height:290px; width:250px;" %>
+
+<p>Alot of changes have gone into <a href="http://github.com/movitto/polisher">Polisher</a> since my last <a href="http://mo.morsi.org/blog/node/307">update</a> (eg the initial release). Most notably, the focus of Polisher has been changed and expanded, it now serves as a generic upstream project post-release processing tool, which can be used to configure any number of upstream projects w/ many various sources, and associate events with them to be triggered on releases. Polisher still works w/ the <a href="http://rubygems.org/pages/api_docs">gemcutter</a> API (namely the subscriptions / webhooks) as well as with gem2rpm, but now they are special cases in the generic upstream project management framework. 
+</p>
+
+<p>
+In the backend, Polisher is now based on <a href="http://www.sinatrarb.com/">Sinatra</a>, which is far more lightweight and flexible than the previous solution, <a href="http://rubyonrails.org/">Rails</a>. Rails is a powerful framework in itself, but I was looking for something small to help me establish the primary <a href="http://en.wikipedia.org/wiki/Representational_State_Transfer">REST</a> interface to the webapp. 
+</p>
+
+<p>
+Polisher also provides a nice <a href="http://en.wikipedia.org/wiki/Domain-specific_language">DSL</a> interface which can be used to define and run mass project / source registrations and trigger events in order to automate many various releases at the same time. I went through and picked several popular ruby-related packages from the current Fedora Repos, and wrote <a href="http://github.com/movitto/polisher-scripts">Polisher scripts</a> for all of them, establishing several <a href="http://projects.morsi.org/polisher/repos">yum repositories</a> for various Ruby related stacks. 
+</p>
+
+<p>
+Currently I have setup:
+</p>
+
+<ul>
+  <li>stable       - same packages that are currently in Fedora updates</li>
+  <li>maintenance  - later releases in the same major version branch of the packages currently in stable</li>
+  <li>devel        - packages that work w/ Ruby 1.9 (great <a href="http://isitruby19.com/">resource</a>)</li>
+  <li>rawhide      - all latest project versions</li>
+</ul>
+
+<p>
+By tweaking the Polisher scripts and rpm spec file templates, the contents of these repos can be changed and new ones can be setup for any target software stack.
+</p>
+
+<p>
+Any Fedora / yum user can simply point a yum repo entry towards any of those before running a yum update to get all the latest Ruby packages provided by that repo. <b>Warning</b> no functionality is guaranteed, there may currently be major breakage as Polisher and the scripts themselves are a work in progress. Furthermore, I'm in the process of setting up various <a href="http://fedoraproject.org/">Fedora</a> based <a href="http://thincrust.org/tooling.html">appliances</a>, each pointing at a different Polisher generated repo by default. Any user can easily startup a VM on their local machine based off any of those appliances and instantly have Fedora w/ a complete Ruby stack for whichever version of Ruby they want to use. It's a work in progress, and I will have a link up soon to the downloadable images.
+<p>
+
+<p>
+It would be awesome to get some help from anyone in the community that's interested in Ruby on Fedora (or any upstream project post-release processing on any flavor of Linux in general, as it's trivial to expand Polisher to handle any input/output package or repository format). It is a bit of effort to get Polisher scripts written for every Ruby related package, but if this thing starts rolling, I can see this as being a useful tool in the "upstream project to Fedora repo" process as mass parallel source releases can be triggered and handled easily in a committable / reproducible / reliable fashion.
+</p>
+
+<p>
+Well that's it for now, be sure to note the many updates to <a href="http://git.fedoraproject.org/git/?p=deltacloud/portal.git;a=shortlog;h=refs/heads/next">deltacloud</a> and many to my own <a href="http://github.com/movitto/">projects</a>, more on all of those in the near future.
+</p>
+
+<p>
+Until next time, take it easy.
+</p>

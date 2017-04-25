@@ -1,0 +1,173 @@
+---
+title: Live Cross-Cloud Migrations With Aeolus and Snap
+date: 2011-11-04
+---
+
+<p>In the past when evaluating cloud providers, one had to to make a critical decision right up front, to select the provider that offers the features needed at a price that is agreeable to the end-user. If the provider changed their terms of service and/or pricing scheme, the sysadmin/developer was more or less stuck with their choice, unless they made the painful effort of manually migrating all software and data to another provider. <b>Well not anymore.</b></p>
+
+<p>I'm pleased to announce that with the assistance of <a href="http://aeolusproject.org">Aeolus</a>, Red Hat's Open Source Cloud API, and <a href="http://github.com/movitto/snap">Snap!</a> a system snapshotter and restoration utility (started as my Masters project in '07), it is now possible to migrate cloud instances of any type across cloud providers (currently supported distros are Fedora, Ubuntu, Debian, RHEL, and CentOS with more and Windows support in development / coming soon).</p>
+
+<p>For details, see the following step-by-step guide complete w/ screenshots of how to migrate instances between Amazon EC2 and Rackspace (this will work for migrating instances between any cloud providers supported by <a href="http://incubator.apache.org/deltacloud/drivers.html#h2">deltacloud</a>, the core Aeolus component/api). Everything will be migrated from the source instance to destination on the fly (no instance downtime), from package repositories and installed software, to files modified outside the package management system, to services and their configurations, etc.</p>
+
+<div>
+<ul>
+<li>
+<p>To start off we are assuming you have an instance running on EC2 which you can ssh into. Here you can see a Fedora 15 instance running a mediawiki install. (click to see bigger screenshots)
+<%= link_to image_tag("1-running-ec2-instance.png", :style => "float: left; width:325px; height:250px;"), image_path("1-running-ec2-instance.png") %><%= link_to image_tag("2-running-mediawiki-install.png", :style => "float: left;width:325px; height:250px;margin-left:10px;"), image_path("2-running-mediawiki-install.png") %>
+<div style="clear: both;"></div>
+<br/>
+</li>
+
+<li>
+<p>The machine I was orchestrating the migration from was my local F15 laptop. I setup environment variables in my bash profile corresponding to the following:</p>
+<ul>
+<li>$EC2_USERNAME: my ec2 access key, retrieved from the AWS security credentials screen</li>
+<li>$EC2_PASSWORD: my ec2 <b>secret</b> access key, also retrieved from the AWS security credentials screen</li>
+<li>$RACKSPACE_USERNAME: my rackspace login name</li>
+<li>$RACKSPACE_PASSWORD: my rackspace API key, retrieved by logging into rackspace and navigating to Your Account > API Access</li>
+</ul>
+<br/>
+</li>
+
+<li>
+<p>On my local laptop, I installed the <a href="http://incubator.apache.org/deltacloud/">deltacloud</a> drivers for ec2 and rackspace. Deltacloud implements a <a href="http://incubator.apache.org/deltacloud/download.html">client/server</a> architecture for remote management, so I also installed the deltacloud client</p>
+<p><b>$ sudo yum install deltacloud-core-ec2 deltacloud-core-rackspace rubygem-deltacloud-client</b></p>
+<%= image_tag "3-install-deltacloud-components.png", :style => "width:700px; height:550px;" %>
+<br/>
+</li>
+
+<li>
+<p>I then started deltacloud servers for both the ec2 and rackspace drivers (note it is now possible w/ the upstream deltacloud project to use the same server for multiple drivers)</p>
+<p><b>$ deltacloudd -i ec2 -p 3002</b></p>
+<p><b>$ deltacloudd -i rackspace -p 3003</b></p>
+<%= image_tag "4-start-deltacloud-ec2.png", :style => "float: left;width:700px; height:200px;" %>
+<div style="clear: both;"></div>
+<br/>
+</li>
+
+<li>
+<p>Next I used the deltacloud client to retrieve information about my running EC2 instance</p>
+<p><b>$ deltacloudc instances index -u http://$EC2_USERNAME:$EC2_PASSWORD@localhost:3002/api</b></p>
+<%= image_tag "6-deltacloudc-view-ec2-instance.png", :style => "width:700px; height:200px;" %>
+<p>Note in this screenshot, you can see the ec2 instance hostname which I can ssh to (due to the formatting of the field,  'amazonaws.com' has been truncated)</p>
+</li>
+
+<li>
+<p>Now I ssh'd into the instance, specifying my keypair previously configured on Amazon when starting the instance</p>
+<p><b>$ ssh -i ~/.ssh/mmorsi-keypair.pem ec2-user@ec2-107-22-56-233.compute-1.amazon.com</b></p>
+<%= image_tag "7-ssh-into-ec2-instance.png", :style => "width:700px; height:200px;" %>
+<br/>
+</li>
+
+<li>
+<p>On the cloud instance, I used yum to install Snap. Until the Snap package is accepted and avaiable in Fedora / Ubuntu / other mainstream distributions, I have hosted binary packages in my own <a href="http://yum.morsi.org/repos/15/noarch/snap-0.5-1.fc15.noarch.rpm">yum</a> and <a href="http://apt.morsi.org/ubuntu/pool/main/s/snap/snap_0.5_all.deb">apt</a> repositories</p>
+<p><b>$ sudo wget http://yum.morsi.org/repos/15/morsi.repo -O /etc/yum.repos.d/morsi.repo</b></p>
+<p><b>$ sudo yum install snap</b></p>
+<%= image_tag "8-setup-morsi-org-repo.png", :style => "float: left;width:700px; height:250px;" %>
+<%= image_tag "9-yum-install-snap.png", :style => "float:left;width:700px; height:550px;margin-top:10px;" %>
+<div style="clear: both;"></div>
+<br/>
+</li>
+
+<li>
+<p>Due to how Amazon handles its cloud security policy (eg through their security groups concept), iptables is not setup on EC2 instances. Snap will by default backup and restore iptables rules, so we have to edit the snap configuration file to remove this backup target</p>
+<p><b>$ sudo vim /etc/snap.conf</b></p>
+<%= image_tag "10-edit-snap-configuration.png", :style => "width:700px; height:250px;" %>
+<p>Remove the hightlighted content</p>
+<br/>
+</li>
+
+<li>
+<p>Before running the snapshot, lets take a look at the options Snap presents us. Note Snap provides both a command line tool and a graphical GTK based one (more on snap coming in a future blogpost)</p>
+<p><b>$ snaptool --help</b></p>
+<%= image_tag "11-snaptool-help-options.png", :style => "width:700px; height:550px;" %>
+<br/>
+</li>
+
+<li>
+<p>Now we run the actual snapshot</p>
+<p><b>$ sudo snaptool --backup --log-level verbose --norepos --packages --nofiles --services</b></p>
+<%= image_tag "12-run-snap.png", :style => "float: left;width:700px; height:550px;" %>
+<div style="clear: both;"></div>
+<p>We pass in <b>--backup</b> to perform a backup operation instead of a restoration one, specify verbose output with <b>--log-level</b>, and configure the snapshot targets. Snap offers a very modular / extensible plugin system in which targets to backup / restore can easily be defined, and operating system specific backends to those targets implemented. In our case we opt to backup the packages installed on the instance as well as the running services. We do not need to backup any package repositories as we are only using stock fedora software and no extra files are required (<b>--services</b> will backup the files required for those services to run)</p>
+<br/>
+</li>
+
+<li>
+<p>This produces a snapshot in /tmp/snap-shot.tgz (the location of this can be configured by specifying --snapfile to snaptool). Back on our host system, we scp that file locally</p>
+<p><b>$ scp -i ~/.ssh/mmorsi-keypair.pem ec2-user@ec2-107-22-56-233.compute-1.amazon.com:/tmp/snap-shot.tgz .</b></p>
+<%= image_tag "14-scp-snapshot-locally.png", :style => "width:700px; height:200px;" %>
+<br/>
+</li>
+
+<li>
+<p>We can easily inspect the snapshot as it is a tarball (snap also supports snapshot encryption/decryption, protecting the contents of the tarball)</p>
+<p><b>$ tar tzvf snap-shot.tgz</b></p>
+<%= image_tag "15-inspect-snapshot.png", :style => "width:700px; height:450px;" %>
+<br/>
+</li>
+
+<li>
+<p>Next we goto launch a new instance on our destination cloud, Rackspace. To do this we first view the images available to base our instance off of<p>
+<p><b>$ deltacloudc images index -u http://$RACKSPACE_USERNAME:$RACKSPACE_PASSWORD@localhost:3003/api</b></p>
+<%= image_tag "16-view-rackspace-images.png", :style => "width:700px; height:550px;" %>
+<p>We've highlighted an image matching the OS out our source instance (note it is theoretically possible to restore the snapshot on a completely different OS! I have yet to try this out yet though so no guarantees)</p>
+<br/>
+</li>
+
+<li>
+<p>Now we spin up a new instance using the selected image as the basis</p>
+<p><b>$ deltacloudc instances create -u http://$RACKSPACE_USERNAME:$RACKSPACE_PASSWORD@localhost:3003/api --image-id 78</b></p>
+<%= image_tag "17-start-rackspace-instance.png", :style => "width:700px; height:200px;" %>
+<p>We see the ip address of the instance, which we can SSH to, right from this output. Once the instance is started (usually within a minute from my findings) Rackspace sends an email containing the root password</p>
+<br/>
+</li>
+
+<li>
+<p>Before logging in, we scp our snapshot over to the new instance</p>
+<p><b>$ scp snap-shot.tgz root@50.57.173.148:~/</b></p>
+<%= image_tag "18-scp-snapshot-to-rackspace.png", :style => "width:700px; height:200px;" %>
+<br/>
+</li>
+
+<li>
+<p>We now ssh into the new instance</p>
+<p><b>$ ssh root@50.57.173.148</b></p>
+<%= image_tag "19-ssh-to-rackspace.png", :style => "width:700px; height:250px;" %>
+<br/>
+</li>
+
+<li>
+<p>We use the same wget and yum commands as above to install Snap</p>
+<p><b># wget http://yum.morsi.org/repos/15/morsi.repo -O /etc/yum.repos.d/morsi.repo</b></p>
+<p><b># yum install snap</b></p>
+<br/>
+</li>
+
+<li>
+<p>Now we restore the snapshot, again using snaptool</p>
+<p><b># snaptool --restore -l verbose --snapfile snap-shot.tgz</b></p>
+<%= image_tag "22-snaptool-restore.png", :style => "width:700px; height:550px;" %>
+<br/>
+</li>
+
+<li>
+<p>Finally since the EC2 security groups mechanism is different than the standard iptables solution, and we weren't able to simply backup/restore the firewall policy (as Snap does by default), we need to open port 80 for http in our firewall. We use the text based firewall manager that ships w/ RH based system to do so</p>
+<p><b># system-config-firewall-tui</b></p>
+<%= image_tag "23-open-firewall-http.png", :style => "float: left;width:700px; height:550px;" %>
+<%= image_tag "24-firewall-opened.png", :style => "float: left;width:700px; height:450px;margin-top:10px;" %>
+<div style="clear: both;"></div>
+<br/>
+</li>
+
+<li>
+<p>Bring up a web browser, point it at our new instance and WHALA! the world's first open source cross-cloud migration!</p>
+<%= image_tag "25-verify-results.png", :style => "width:700px; height:550px;" %>
+<br/>
+</li>
+
+</ul>
+</div>
+
+Stay tuned for more updates. <b>To the cloud!</b>
+<!--break-->

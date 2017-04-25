@@ -1,0 +1,260 @@
+---
+title: Messing around w/ HTML5 - the canvas
+date: 2011-12-22
+---
+
+<p>
+Like it or not <a href="http://en.wikipedia.org/wiki/HTML5">HTML5</a> is coming (or is here depending on who you ask). After playing around with it a bit, I've found more of the same, if you're familiar w/ the underlying concepts in different contexts, it should be really easy to pick up. 
+</p>
+
+<p>
+Regardless, I've installed the <a href="http://drupal.org/project/html5_tools">Drupal HTML5 Tools</a> plugin to be able to use HTML5 themes in my blog's CMS, and decided to mess around w/ a few underlying concepts to see the nuances of how they work. The first of these is the canvas, which can be used to easily draw in-browser graphics.
+</p>
+
+<p>
+For example checkout this simple version of pong that I just quickly whipped up. (edge cases not included :-p)
+</p>
+
+  <script type="text/javascript">
+    var context;
+    var WIDTH;
+    var HEIGHT;
+    var ball;
+    var paddle;
+
+    var upPressed    = false;
+    var downPressed  = false;
+
+    function Ball(){
+      this.padding = 5;
+      this.r = 10;
+
+      this.update = function(){
+        // move the ball
+        this.x += this.dx;
+        this.y += this.dy;
+
+        // detect collisions with walls
+        if(this.x > (WIDTH - this.r/2 - this.padding))
+          this.dx = this.dx * -1;
+        if(this.y > (HEIGHT - this.r/2 - this.padding) ||
+           (this.r/2 + this.padding) > this.y)
+          this.dy = this.dy * -1;
+
+        // collision w/ player paddle
+        if(this.y > (paddle.y - paddle.height/2) &&
+           (paddle.y + paddle.height/2) > this.y &&
+           (paddle.x + paddle.width/2 + this.padding) > this.x)
+             this.dx = this.dx*-1;
+
+        // collision w/ player wall
+        if(this.r/2 > this.x){
+          reset_game();
+        }
+
+        // draw it to the screen
+        context.beginPath();
+        context.fillStyle = "#000";
+        context.arc(this.x, this.y, this.r, 0, Math.PI*2, true);
+        context.closePath();
+        context.fill();
+      }
+    }
+    function Paddle(){
+      this.width  = 5;
+      this.height = 50;
+
+      this.update = function(){
+        // detect movements
+        if(upPressed && !(0 > this.y - this.height/2)){
+          this.y -= 5;
+        }
+        else if(downPressed && !(this.y + this.height/2 > HEIGHT)){
+          this.y += 5;
+        }
+
+        // draw it to the screen
+        context.fillStyle = "#000";
+        context.fillRect(this.x, this.y, this.width, this.height);
+      }
+    }
+
+    function reset_game(){
+      ball.x = WIDTH/2;
+      ball.y = HEIGHT/2;
+      paddle.x = 20;
+      paddle.y = HEIGHT/2;
+
+      ball.dx = Math.ceil(Math.random()*3);
+      ball.dy = Math.ceil(Math.random()*3);
+    }
+
+    function draw(){
+      // clear drawing area
+      context.fillStyle = '#fff';
+      context.fillRect(0, 0, WIDTH, HEIGHT);
+
+      // move and draw the ball and paddle
+      ball.update();
+      paddle.update();
+    }
+
+    function onKeyDown(evt) 
+    {
+      if(evt.keyCode == 38)
+        upPressed = true;
+      else if(evt.keyCode == 40)
+        downPressed = true;
+    }
+
+    function onKeyUp(evt)
+    {
+      if(evt.keyCode == 38)
+        upPressed = false;
+      else if(evt.keyCode == 40)
+        downPressed = false;
+    }
+
+    $(document).ready(function(){
+      context = $('#test-canvas1')[0].getContext("2d");
+
+      WIDTH   = $("#test-canvas1").width();
+      HEIGHT  = $("#test-canvas1").height();
+
+      ball = new Ball();
+      paddle = new Paddle();
+      reset_game();
+
+      setInterval(draw, 5);
+    });
+
+    $(document).keydown(onKeyDown);
+    $(document).keyup(onKeyUp);
+  </script>
+
+<canvas id="test-canvas1" width="500" height="500"></canvas>
+
+<p>
+See the code here:
+</p>
+
+<% code("javascript") do %>
+ <script type="text/javascript">
+    var context;
+    var WIDTH;
+    var HEIGHT;
+    var ball;
+    var paddle;
+
+    var upPressed    = false;
+    var downPressed  = false;
+
+    function Ball(){
+      this.padding = 5;
+      this.r = 10;
+
+      this.update = function(){
+        // move the ball
+        this.x += this.dx;
+        this.y += this.dy;
+
+        // detect collisions with walls
+        if(this.x > (WIDTH - this.r/2 - this.padding))
+          this.dx = this.dx * -1;
+        if(this.y > (HEIGHT - this.r/2 - this.padding) ||
+           (this.r/2 + this.padding) > this.y)
+          this.dy = this.dy * -1;
+
+        // collision w/ player paddle
+        if(this.y > (paddle.y - paddle.height/2) &&
+           (paddle.y + paddle.height/2) > this.y &&
+           (paddle.x + paddle.width/2 + this.padding) > this.x)
+             this.dx = this.dx*-1;
+
+        // collision w/ player wall
+        if(this.r/2 > this.x){
+          reset_game();
+        }
+
+        // draw it to the screen
+        context.beginPath();
+        context.fillStyle = "#000";
+        context.arc(this.x, this.y, this.r, 0, Math.PI*2, true);
+        context.closePath();
+        context.fill();
+      }
+    }
+    function Paddle(){
+      this.width  = 5;
+      this.height = 50;
+
+      this.update = function(){
+        // detect movements
+        if(upPressed && !(0 > this.y - this.height/2)){
+          this.y -= 5;
+        }
+        else if(downPressed && !(this.y + this.height/2 > HEIGHT)){
+          this.y += 5;
+        }
+
+        // draw it to the screen
+        context.fillStyle = "#000";
+        context.fillRect(this.x, this.y, this.width, this.height);
+      }
+    }
+
+    function reset_game(){
+      ball.x = WIDTH/2;
+      ball.y = HEIGHT/2;
+      paddle.x = 20;
+      paddle.y = HEIGHT/2;
+
+      ball.dx = Math.ceil(Math.random()*3);
+      ball.dy = Math.ceil(Math.random()*3);
+    }
+
+    function draw(){
+      // clear drawing area
+      context.fillStyle = '#fff';
+      context.fillRect(0, 0, WIDTH, HEIGHT);
+
+      // move and draw the ball and paddle
+      ball.update();
+      paddle.update();
+    }
+
+    function onKeyDown(evt) 
+    {
+      if(evt.keyCode == 38)
+        upPressed = true;
+      else if(evt.keyCode == 40)
+        downPressed = true;
+    }
+
+    function onKeyUp(evt)
+    {
+      if(evt.keyCode == 38)
+        upPressed = false;
+      else if(evt.keyCode == 40)
+        downPressed = false;
+    }
+
+    $(document).ready(function(){
+      context = $('#test-canvas1')[0].getContext("2d");
+
+      WIDTH   = $("#test-canvas1").width();
+      HEIGHT  = $("#test-canvas1").height();
+
+      ball = new Ball();
+      paddle = new Paddle();
+      reset_game();
+
+      setInterval(draw, 5);
+    });
+
+    $(document).keydown(onKeyDown);
+    $(document).keyup(onKeyUp);
+  </script>
+
+<canvas id="test-canvas1" width="500" height="500"></canvas>
+<% end %>

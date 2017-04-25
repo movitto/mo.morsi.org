@@ -1,0 +1,45 @@
+---
+title: Parsing Unsanitized JSON from Ruby
+date: 2013-09-28
+---
+
+Parsing Unsanitized JSON from Ruby
+
+<%= image_tag "json-logo.gif", :style => "float: left; margin-right: 10px;" %>
+
+<p>
+Recently <a href="https://groups.google.com/forum/#!msg/rubyonrails-security/4_YvCpLzL58/KBTICG7b4NgJ">CVE-2013-0269</a> was filed against the <a href="https://github.com/flori/json">json gem</a> and a subsequent <a href="https://github.com/flori/json/commit/d0a62f3ced7560daba2ad546d83f0479a5ae2cf2">patch</a> pushed resolving the issue. The root culprit was caused by the json's gems automatic mapping of string class names encoded in json data to Ruby classes. The Ruby class name lookup mechanisms (used <a href="https://github.com/flori/json/blob/d0a62f3ced7560daba2ad546d83f0479a5ae2cf2/lib/json/common.rb#L35">here</a>) automatically converts strings into symbols which are not garbage collected by Ruby. This means if a machine uses json to parse unsanitized JSON code, it may be subject to a <a href="http://en.wikipedia.org/wiki/Denial-of-service_attack">DOS attack</a>.
+</p>
+
+<p>
+<a href="https://github.com/movitto/rjr">RJR</a> currently supports this automatic conversion of classes so the situation is problematic. Technically RJR doesn't need to support this, but it's a nice feature to have. After a bit of investigation I filed an <a href="https://github.com/flori/json/issues/179">issue</a> with a few workarounds, along with a <a href="https://github.com/flori/json/pull/182">pull request</a>. These are detailed below:
+</p>
+
+<p>
+- Workaround 1: Override the JSON string -> Ruby class lookup/conversion mechanism.<br/>
+&nbsp;&nbsp;- Benefits: quick, easy, efficient<br/>
+&nbsp;&nbsp;- Drawbacks: requiring overriding an external dependency's code, may have unintended consequences<br/>
+</p>
+<script src="https://gist.github.com/movitto/6261634.js"></script>
+
+<p>
+- Workaround 2: Use a two stage parsing process, doing a string comparison inbetween stages<br/>
+&nbsp;&nbsp;- Benefits: Non-intruisive, map any way you want<br/>
+&nbsp;&nbsp;- Drawbacks: Slow, multiple parsing passes takes time<br/>
+</p>
+<script src="https://gist.github.com/movitto/6261662.js"></script>
+
+<p>
+- JSON gem patch: Introduce a callback mechanism to specify custom string -> class mapping<br/>
+&nbsp;&nbsp;- Simple support for overriding json -> ruby conversion w/ custom behavior<br/>
+&nbsp;&nbsp;- Falls back to default behaviour if not specified<br/>
+&nbsp;&nbsp;- See the pull request <a href="https://github.com/flori/json/pull/182">here</a>
+</p>
+
+<p>
+I'm hoping the pull request to json will be accepted so that I can just rely on a custom matcher plugin in rjr. In the meantime I've just pushed a <a href="https://github.com/movitto/rjr/commit/199ee1de10d54fae1cf57330883671596a24011d">patch</a> to rjr that implements a hybrid solution. It supports the registration of json creatable classes but will also rely on the class namespace to try to resolve references as a fallback. Since this is all used and encapsulated in rjr itself, the JSON module does not have to be <a href="http://en.wikipedia.org/wiki/Monkey_patch">monkey patched</a>.
+</p>
+
+<p>
+You can find the latest RJR release on <a href="http://rubygems.org/gems/rjr">rubygems.org</a>.
+</p>

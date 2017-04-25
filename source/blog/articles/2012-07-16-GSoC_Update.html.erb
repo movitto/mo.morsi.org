@@ -1,0 +1,38 @@
+---
+title: GSoC Update
+date: 2012-07-16
+---
+
+<%= image_tag "gsoc2012.png", :style => "width: 730px;" %>
+
+<p>
+A few months back I <a href="http://mo.morsi.org/blog/node/366">wrote</a> about a few projects which I am mentoring for <a href="http://fedoraproject.org">Fedora</a> as part of the Google Summer of Code '12. Now that the summer is about 1/2 way over, I'm pleased to share the progress on the projects, as well as all the hard work that the students' have put into them.
+</p>
+
+<p>
+First off Sammy who is working on an interface to <a href="https://fedoraproject.org/wiki/GSOC_2012/Student_Application_Samridh90/Bringing_the_Cloud_to_the_Fedora_Desktop">deploy to the cloud via specified deployment criteria</a> has made great headway expanding the central Aeolus API to support hardware profiles and instance management. Sammy has also expanded the command line client and utility to support these new capabilities and will be basing the remainder of the work this summer on using these features to deploy to the cheapest and quickest cloud providers.
+</p>
+
+<p>
+Nitesh (who has been graciously volunteering his own time outside the GSoC) has been working on building a graphical (<a href="http://qt.nokia.com/products/">QT based</a>) desktop client for Aeolus, which he is hosting on his <a href="https://github.com/niteshnarayanlal/Aeolus-gui">github</a> repo. The application is looking great, modules have already been completed for provider and instance management from the desktop, and he is looking to continue expanding functionality for end-to-end cloud instance management.
+</p>
+
+<p>
+<%= link_to image_tag("04-cloud-providers.png", :style => "width: 280px; height: 90px; float: left;"), image_path("04-cloud-providers.png") %><%= link_to image_tag("06-new-image.png", :style => "width: 230px; height: 230px; float: left; margin-left: 10px;"), image_path("06-new-image.png")  %>
+</p>
+
+<div style="clear: both"></div>
+
+<p>
+Finaly Zuhao who has been working hard on the <a href="http://isitfedoraruby.syracloud.net/">isitfedoraruby</a> project has also made great headway, implementing <a href="http://rubydoc.info/gems/rake/0.9.2.2/frames">Rake</a> tasks allowing us to import gems and rpms into the database, as well as various frontend interfaces which to display and cross-reference the gem and rpm metadata and other info. Various other features are in progress including the ability to comment and rate specific packages, a section highlighting various projects based on the Fedora / Ruby stack, and a mechanism to more closely integrate w/ rubygems as gems are pushed. You may find the code in Zuhao's <a href="https://github.com/zuhao/isitfedoraruby/tree/create-controllers">github</a> repo, and I've hosted the website on a temp subdomain for <a href="http://isitfedoraruby.syracloud.net/">demoing</a> purposes. Towards he end of the summer we'll update the site with the latest developments, reserve the is-it-fedora-ruby (or other) domain, and point that at my server. 
+</p>
+
+<p>
+<%= link_to image_tag("02-gem-list.png", :style => "width: 300px; height: 200px; float: left;"), image_path("02-gem-listpng") %><%= link_to image_tag("03-packages-by-popularity.png", :style => "width: 300px; height: 200px; float: left; margin-left: 10px;") %>
+</p>
+<div style="clear: both"></div>
+
+<p>
+Any comments, feedback, patches, or feature requests to any of these projects would be more than appreciated. Be sure to stay tuned for more updates as these projects evolve as additional features are added.
+</p>
+<div style="clear: both"></div>

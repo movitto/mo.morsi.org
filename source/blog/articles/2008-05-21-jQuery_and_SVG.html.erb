@@ -1,0 +1,126 @@
+---
+title: jQuery and SVG
+date: 2008-05-21
+---
+
+Both the <a href="http://jquery.com">jQuery library</a> (as well as javascript in general) and <a href="http://en.wikipedia.org/wiki/Svg">SVG</a> are technologies I've really been meaning to explore as a web developer. Recently at Red Hat we've been very busy overhauling our project for an impending major demo (blog post on this in the near future) and I've been expirementing with incorporating both these technologies into the site. Both are very cool, and alot can be written about them, but I'll skip all the introduction and give simply jump into how you can utilize the <a href="http://keith-wood.name/svgRef.html">jQuery SVG Plugin</a>. Before you begin, make sure you have the jquery, jquery.svg, and jquery.svggraph plugins readily available and accessible from your web page (for those using Drupal out there, it now has built in jQuery support, so you will only have to d/l the svg and svggraph plugins and insert them into your theme template). Also make sure to note that while SVG works out of the box in Firefox, IE users will need to download a plugin to get it working.
+
+<style type="text/css">
+#barfoo {
+  height: 200px; width: 300px; padding-left: 20px;
+}
+</style>
+<div id="barfoo"></div>
+<script type="text/javascript">
+  $("#barfoo").svg();
+  var svg = svgManager.getSVGFor("#barfoo");
+  svg.graph.noDraw();
+  svg.graph.chartFormat('white', 'white').chartType("bar", {explode: [2], explodeDist: 10})
+  svg.graph.addSeries('IE', [95.97, 91.80, 88.16, 86.64], 'lightblue', 'blue', 3).addSeries('Netscape', [3.39, 2.83, 1.61, 0.00], 'pink', 'red', 3).addSeries('Firefox', [0.00, 4.06, 8.13, 9.95], 'lightgreen', 'green', 3);
+  svg.graph.xAxis.line('white', 0);
+  svg.graph.yAxis.line('white', 0);
+  svg.graph.legend.show(false);
+  svg.graph.redraw();
+</script>
+
+Perhaps the easiest and most logical place to start is to include the necessary plugins into your html. Use whatever API your web framework provides to do so or simply add the following to you site's layout (to be included on every page which jquery / svg functionality is needed).
+
+&nbsp;&nbsp;&lt;script type="text/javascript" src="/somepath/jquery.js"&gt;&lt;/script&gt;
+&nbsp;&nbsp;&lt;script type="text/javascript" src="/somepath/jquery.svg.pack.js"&gt;&lt;/script&gt;
+&nbsp;&nbsp;&lt;script type="text / javascript" src="/somepath/jquery.svggraph.js"&gt;
+&nbsp;&nbsp;&lt;/script&gt;
+
+Notice that I'm using the packed jquery-svg module, its the same as the regular version, simply optimized for the browser's javascript parser.
+
+From here we can insert the div we are going to be operating on, and initialize it to handle svg.
+
+<div style="padding-left: 15px; width: 90%;">
+  &lt;div id="foobar"&gt;&lt;/div&gt;
+  &lt;script type="text / javascript"&gt;
+  <div style="padding-left: 15px; width: 90%;">
+    $("#foobar").svg();
+    var svg = svgManager.getSVGFor("#foobar");
+    svg.graph.noDraw();
+    svg.graph.redraw();
+  </div>&lt;/script&gt;
+</div>
+
+
+A couple of things are happening here. First off we see the $() function, which is merely an alias for the jQuery() function which is the primary interface to the jQuery library. When presented with a <a href="http://www.w3.org/TR/REC-CSS2/selector.html">CSS Selector</a> this function returns the element (or list of elements that match). In the above example <i>$("#foobar")</i> selects and returns the div with an id of 'foobar'. You can use all the css selectors in the standard and regular expressions which leads to some very powerful and target selectors. jQuery is also notorious for supporting chain-programming, eg returning the object being modified from every modification method. This allows you to repeatidly call modification methods in a single statement without needing a semi-colon on break (eg. object.method1().method2().method3() ...). For this tutorial, I'll omit this nifty feature as it is sometimes confusing to new jQuery developers. Going back to the example, we see a svg object first being attached by invoking the "svg()" method on the selected div, after which we obtain a handle to that div. <i>svg.graph.noDraw()</i> disables the browser from drawing any svg element until <i>svg.graph.redraw()</i> is invoked. We will place all the code to generate the actual graph inbetween those two directives. Speaking of which....
+
+<div style="padding-left: 15px; width: 90%;">
+  svg.graph.chartFormat('white', 'white').chartType("bar", {explode: [2], explodeDist: 10})
+
+  svg.graph.addSeries('IE', [95.97, 91.80, 88.16, 86.64], 'lightblue', 'blue', 3).addSeries('Netscape', [3.39, 2.83, 1.61, 0.00], 'pink', 'red', 3).addSeries('Firefox', [0.00, 4.06, 8.13, 9.95], 'lightgreen', 'green', 3);
+
+  svg.graph.xAxis.line('white', 0);
+  svg.graph.yAxis.line('white', 0);
+  svg.graph.legend.show(false);
+</div>
+
+Placing this between the calls to 'noDraw' and 'redraw' mentioned above, this sets up the actual graph we want to draw. Note, we are using fixed values for the data here, in a minute I'll show you how to invoke a page request to a target resource that will return a list of <a href="http://en.wikipedia.org/wiki/Json">JSON</a> objects which we can generate the graph from. In the example, we first set various properties of the chart, setting the chart to be a bar graph and the stroke (eg line) and fill (eg background) colors to white. We add our fixed data after this (note the cascading / chained statements), and set the axis to be 'invisible'. Lastly we disable the legend from appearing. Note all these properties and methods are detailed in the jQuery-svg reference posted above. If we place all the above code in our page, the javascript will run and the svg will be generated (look at the DOM if you don't believe me) but we will not see anything. This is because the last step is to style the graph, at a minimum a width / height needs to be specified for it to appear.
+
+<div style="padding-left: 15px; width: 90%;">
+  &lt;style type="text/css"&gt;
+    &nbsp;#foobar {
+      &nbsp;&nbsp;height: 200px; width: 200px; 
+    &nbsp;}
+  &lt;/style&gt;
+</div>
+
+Placing this last bit in the html results in the graph appearing as expected.
+
+Lastly, we will explore a simple way to retrieve data for an external source so that it can be dynamically generated and used in the graph. The jQuery library provides a "getJSON" method to retrieve a list of JSON objects from a specified url. The developer simply need to add this to his script (a good place to put it would to replace the 'addSeries' calls in the above code).
+
+<div style="padding-left: 15px; width: 90%;">
+   var params = { id:1, type:"summary", timeframe:"7 days", isJSON:true};
+   $.getJSON("http://myurl", params, 
+       <div style="padding-left: 5px; width: 90%;">
+              function(response) {
+                <div style="padding-left: 5px; width: 90%;">
+                $(response.dataset).each(function(){
+                    svg.graph.addSeries(this.name, this.values, this.fill, this.stroke, this.strokeWidth);
+                  });
+                </div>
+              }
+       </div>
+            );
+</div>
+
+The previous sets up several parameters to use in the request (that's all I got, see the getJSON reference for more info) calls out to myurl, looping through each result, adding it to the data set. If you are the one maintaining the server side API, you will need to return an array of JSON objects containing the fields needed to add the series. How you will do this depends on the technology you are using, for example in Ruby on Rails, one would do
+
+<div style="padding-left: 15px; width: 90%;">
+  today = DateTime.now
+  dates = [ today.month.to_s + '/' + today.day.to_s ]
+  1.upto(6){ |x|  
+       dte = today - x
+       dates.push (dte.month.to_s + '/' + dte.day.to_s )
+  }
+
+  peakvalues = [95.97, 91.80, 88.16, 86.64, 99.14, 75.14, 85.69]
+  avgvalues  = [3.39, 2.83, 1.61, 0.00, 4.56, 1.23, 5.32]
+
+  graph_object = {
+       :timepoints => dates,
+       :dataset =>
+        [
+            {
+                :name => "peak",
+                :values =>  peakvalues,
+                :stroke => 'red',
+                :strokeWidth => 1
+            },
+            {
+                :name => "average",
+                :values => avgvalues,
+                :stroke => 'blue',
+                :strokeWidth => 1
+            }
+       ]
+  }
+  render :json => graph_object
+</div>
+
+This will generate a time range over the last 7 days and return two data series for that range. Once again the data is statically specified here, but you can easily swap in a call to whatever data-generating API you want.
+
+Obviously there is alot more to jQuery, SVG, and the jQuery-svg plugin that covered here. There is plenty of help scattered around the web, the links posted at the very top are immensely helpful, as is <a href="http://www.amazon.com/jQuery-Action-Bear-Bibeault/dp/1933988355/ref=pd_bbs_sr_1?ie=UTF8&s=books&qid=1211385012&sr=8-1">this jQuery book</a>. Good luck!

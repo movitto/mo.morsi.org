@@ -1,0 +1,18 @@
+---
+title: JSON-RPC Presentation - Brno Ruby Users Group - 26.04.2012
+date: 2012-05-06
+---
+
+<%= image_tag "jsonrpc.png", :style => "float: left; margin-right: 10px; height: 100px; width: 250px;" %>On the Thursday before last I gave a presentation on the <a href="http://en.wikipedia.org/wiki/JSON-RPC">JSON-RPC</a> protocol and my <a href="https://github.com/movitto/rjr">implementation</a> of it to the <a href="http://meetr.cz/meetups/13">Brno Ruby Users Group</a>. You may find the <a href="http://mo.morsi.org/files/brug-jsonrpc">slides here</a> as well some code examples in Ruby and Javascript <a href="http://mo.morsi.org/files/brug-jsonrpc/demo">here</a>.
+
+<p>
+RJR is a simple implementation of the JSON-RPC 2.0 <a href="http://www.jsonrpc.org/specification">standard</a>, using <a href="http://rubyeventmachine.com/">eventmachine</a> on the backend to serve JSON-RPC requests over a multitude of transport types including amqp, http, websockets, tcp/udp, and more. It permits method handlers to be registered and then invoked via any transport the end-user wishes (and the server admin permits access to).
+</p>
+
+<p>
+The context of the request is made available to the handler when it is invoked, so that the developer can manage flow control accordingly and store any additional metadata in the requests and responses to extend the JSON-RPC protocol in any manner they desire.
+</p>
+
+<p>
+The source code is freely available on github, any patches/issues/etc would be more than welcome. Happy hacking!
+</p>

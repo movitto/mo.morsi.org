@@ -1,0 +1,65 @@
+---
+title: Notacon, The Ruby Platform, and More
+date: 2014-04-10
+---
+
+<%= image_tag "Simulacra_and_Simulation_.jpg", :style => "width: 15%; float: left; margin-right: 10px" %>
+
+<p>
+Long time, no post. This blog certainly has been on the backburner recently. Have been pushing plenty of updates to the <a href="http://blog.omegaverse.info/">Omega Blog</a> as well as to the <a href="http://omegaverse.info/">project</a> itself so be sure to check out the <a href="http://omegaverse.info/womega/title.html?autoplay=tech1">new additions</a> if it's been a while (and the latest <a href="https://groups.google.com/forum/#!topic/omegaverse/E4bwCXVh2qI">changelog</a> entry though there have been plenty of updates since!)
+</p>
+
+<p>
+For those in the Cleveland, OH area this weekend and are free, be sure to swing by <a href="http://www.notacon.org/">Notacon</a> where I will be giving a presentation / demo of Omega. It will be held Saturday @3PM in Ballroom III at the <a href="http://www.notacon.org/event-information-2/hotel-travel-information/">Cleveland Mariott East</a>. Of course there are plenty of other great happenings at Notacon, I attended a few years <a href="http://mo.morsi.org/blog/node/333">back</a>. Unfortunately, this year may be the <a href="http://www.notacon.org/1895/the-end-of-an-era/">last</a> time the event is run due to financial difficulties putting it together. Hope this is not the case as it's a great conf, but will have to see.
+</p>
+
+<p>
+Work-wise we've been making a lot of headway on automating various aspects of the the Ruby post-publishing build process, <a href="https://github.com/ManageIQ/polisher">Polisher</a> has seen alot of improvements recently. For example it is now possible to easily run a diff of a forked gem on github via it's original rubygems.org source:
+</p>
+
+<% code("ruby") do %>
+  fog = Polisher::Gem.from_rubygems 'fog', '1.19.0'
+  other = Polisher::Git::Repo.new :url => 'https://github.com/ManageIQ/fog.git'
+  other.clone unless other.cloned?
+
+  diff = fog.diff(other)
+<% end %>
+
+Patches for a RPM spec could be generated from there:
+
+<% code("ruby") do %>
+  patches = Polisher::RPM::Patch.from diff
+  puts patches.collect { |p| p.title.blue.bold + ":\r\n " + p.content[1..50] + '...'.blue.bold }
+<% end %>
+
+<p>
+One can also use Polisher to quickly retrieve this list of tags which a rubygem has been built for in <a href="https://fedoraproject.org/wiki/Koji">Koji</a> or to cross reference the packages in a Koji tag:
+</p>
+
+<% code("ruby") do %>
+  tags = Polisher::Koji.tagged_in('rails')
+  diff = Polisher::Koji.diff('f21', 'f20')
+<% end %>
+
+<a href="https://github.com/bundlerext/bundler_ext">bundler_ext</a> has also seen alot updates recently including a <a href="https://rubygems.org/gems/bundler_ext">new release</a>. The BundlerExt API can now be used intechangibly w/ <a href="http://bundler.io/">Bundler</a>'s <b>setup</b> and <b>require</b> features which will load the gems described in your Gemfile.
+
+<% code("ruby") do %>
+  BundlerExt.system_setup(gemfile_in, :default)
+  BundlerExt.system_require(gemfile_in, :default, Rails.env)
+<% end %>
+
+<p>
+In Bundler's case the user will be prompted to retrieve missing gems from rubygems.org (via <b>bundle install</b>). With BundlerExt the gems will be loaded from the local system, & it will enforce that contract, any missing ones / inconsistencies will result in a failure. In both cases the ruby load path is setup to contain the only the dependencies include paths so only the specified gemset is used.
+</p>
+
+<p>
+Finally of no particular relevance to the above, I've picked up a copy of <a href="http://www.amazon.com/Simulacra-Simulation-The-Body-Theory/dp/0472065211">Simulacra and Simulation</a> and while I haven't gotten too far into it, it's already quite an interesting read. In a nutshell the author's main argument seems to revolve around our defining our own realities by continuously simulating our behaviours and actions (whether concious of it or not) and by accepting endless progression of Simulacra, or images which first distort, then hide, and ultimately replace the reality of that which is being simulated. Ironically it is simulation that insists that reality is real, inorder for it to have some sort of baseline, but rather since all our experience is based on perspective (which in return is influenced by behaviour and vice-versa) simulation / simulacra is reality.
+</p>
+
+<p>
+The argument has been posed before, afterall wise ones and sages have been advising about the fallacies of perspective and multitude of interpretation for thousands of years, though the author does present a well constructed formal argument so far. I have to finish reading the treatise before I can comment further but am looking forward to seeing where he goes w/ it from here.
+</p>
+
+<p>
+Enjoy the simulation!
+</p>

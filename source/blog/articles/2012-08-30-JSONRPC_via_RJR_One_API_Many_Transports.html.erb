@@ -1,0 +1,56 @@
+---
+title: JSON-RPC via RJR - One API / Many Transports
+date: 2012-08-30
+---
+
+<%= image_tag "jsonrpc.png", :style => "float: right; margin-left: 10px; width: 350px; height: 150px;" %>
+
+<p>
+A few months back I gave a presentation to the <a href="http://meetr.cz/meetups/13">Brno Ruby Users</a> group about the <a href="http://en.wikipedia.org/wiki/JSON-RPC">JSON-RPC</a> protocol and my implementation <a href="https://github.com/movitto/rjr">RJR</a>, but didn't go into too much detail here (<a href="http://mo.morsi.org/blog/node/365">blog post</a>). Recently I've been <a href="https://github.com/movitto/rjr/commits/master">pushing</a> many updates and improvements, including a sorely needed <a href="http://rubydoc.info/github/movitto/rjr/frames/file/README.md">docs update</a>, and figure now would be a good time to do just that.
+</p>
+
+<p>
+The goal was to develop a rpc mechanism that was as extensible and pluggable as possible with the implementation being transport agnostic, eg the developer would be able to satisfy and invoke rpc requests over a variety of transport mechanisms, such as <a href="http://en.wikipedia.org/wiki/Transmission_Control_Protocol">tcp</a>, <a href="http://en.wikipedia.org/wiki/Http">http</a>, <a href="http://en.wikipedia.org/wiki/Websocket">websockets</a>, <a href="http://en.wikipedia.org/wiki/AMQP">amqp</a>, and more. This would provide the most outreach for developers, allowing their methods to be invoked in a wide variety of infrastructures and existing systems. It was also important that the handlers be able to determine which transport a request came in on, so as to be able to alter flow-control if desired. To accomplish this, RJR sets a variety of instances variables in the scope of the invoked method handler, things like @rjr_node_type will contain the transport which the request came in on, and other things like @rjr_callback allows the server to send json-rpc request methods back to the client, so long as the transport mechanism remains intact (eg the tcp or websocket remains open, the amqp queue is still valid, etc).
+</p>
+
+<% code("ruby") do %>
+# example server from the RJR documentation:
+# define a rpc method called 'hello' which takes
+# one argument and returns it in upper case
+RJR::Dispatcher.add_handler("hello") { |arg|
+  arg.upcase
+}
+
+# listen for this method via amqp, websockets, http calls
+amqp_node  = RJR::AMQPNode.new  :node_id => 'server', :broker => 'localhost'
+ws_node    = RJR::WSNode.new    :node_id => 'server', :host   => 'localhost', :port => 8080
+www_node   = RJR::WebNode.new   :node_id => 'server', :host   => 'localhost', :port => 8888
+
+# start the server and block
+multi_node = RJR::MultiNode.new :nodes => [amqp_node, ws_node, www_node]
+multi_node.listen
+multi_node.join
+<% end %>
+
+<p>
+Since JSON-RPC is a very simple protocol I also wanted to add a mechanism to allow developers to extend the protocol easily, even if this meant that these customizations would only work against nodes running RJR. To do this RJR allows developers to set arbitrary headers to be written to the json-rpc request, so that method handlers and their invokers may process this additional metadata and do what they will with this. For example, a node being used as a server can take method arguments, authenticate them against any backend, and set a 'session-id' header on all subsequent messages. All subsequent client requests will contain this header which is available to the handlers that can authorize the user. (obviously the end user would want to use a secure transport mechanism incorporating ssl to prevent session-hijacking)
+</p>
+
+<% code("ruby") do %>
+# example clients from the documentation
+# invoke the method over amqp
+amqp_node = RJR::AMQPNode.new :node_id => 'client', :broker => 'localhost'
+puts amqp_node.invoke_request('server-queue', 'hello', 'world')
+
+# invoke the method over http using rjr
+client = RJR::WebNode.new :node_id => 'client'
+puts client.invoke_request('http://localhost:8888', 'hello', 'mo')
+
+# Invoking json-rpc requests over http using curl
+# $ curl -X POST http://localhost:8888 -d '{"jsonrpc":"2.0","method":"hello","params" ["mo"],"id":"123"}'
+# > {"jsonrpc":"2.0","id":"123","result":"Hello mo!"}
+<% end %>
+
+<p>
+As far as next steps, flushing out the <a href="http://en.wikipedia.org/wiki/User_Datagram_Protocol">UDP</a> transport mechanism and continuing to optimize performance are high on my list. At some point I would love to do a complete rewrite in a lower-level language such as <a href="http://en.wikipedia.org/wiki/C_%28language%29">C</a> and simply write wrappers / adapters so that methods implemented in higher level languages can be invoked simultanously. But for the time being, RJR serves my purposes and will continue developing that for now.
+</p>

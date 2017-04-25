@@ -1,0 +1,46 @@
+---
+title: Installing a RoR app on a webhost
+date: 2009-10-27
+---
+
+<p>
+Just figure I'd share a few steps which are useful in getting a RoR application up and running on a web hosting provider. Obviously the steps will vary depending on your specific provider, but most should be the same assuming your given access to a home directory on the web server under which public_html resides.
+</p>
+
+<ul>
+<li>Install your rails app in a location _not_ under ~/public_html. For example ~/rails/appname would be a good place</li>
+<li>Run through your application specific install instructions, configuring db if necessary</li>
+<li>Link the 'public' directory under the rails root, to the public_html directory, eg
+  <% code("bash") do %>
+      ln -s ~/rails/appname/public ~/public_html/appname
+  <% end %>
+</li>
+<li>Edit .htaccess in the public directory, commenting out the following line and replacing it with:
+  <% code do %>
+      # AddHandler fastcgi-script .fcgi
+      AddHandler fcgid-script .fcgi
+  <% end %>
+
+(at least I had to do this w/ my provider, I'm not sure how many this applies to)
+</li>
+<li>Add your gem path to ~/rails/appname/config/environment.rb like so:
+  <% code do %>
+      ENV['GEM_PATH']='/home/username/ruby/gems/gems:/usr/lib/ruby/gems/1.8/'
+  <% end %>
+Obviously your local and system wide gem paths will vary depending on your system. Use the 'gem environment' command to determine what they are.
+</li>
+<li>Finally you may also need to add the following to your ~/rails/appname/config/environment.rb:
+  <% code do %>
+     config.action_controller.related_url_root = '/appname'
+  <% end %>
+or if this doesn't work, add:
+  <% code do %>
+      ActionController::AbstractRequest.related_url_root = '/appname'
+  <% end %>
+    
+This tells rails that our application is located under the '/appname' subdirectory of our webroot, eg in our case ~/public_html.
+</li>
+</ul>
+
+
+Though the process is pretty straightforward, since your not in control of the entire web server you may run into some tricky points as evident through the many related posts out there. Also your web application may have bugs of its own, further complicating the situation. Just stick to it and you should get it eventually.

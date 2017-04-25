@@ -1,0 +1,16 @@
+---
+title: X3D
+date: 2009-12-13
+---
+
+<a href="http://www.web3d.org/x3d/">X3D</a> (<a href="http://en.wikipedia.org/wiki/X3D">wikipedia</a>) is one of those standards that is going to become very popular because it has a huge feature set or fail into obscurity because it is too large and complex to use. Regardless, I've just discovered the specification and have been reading about it / playing around w/ a few implementations over the last few days and I'm pretty impressed.
+
+The cool thing about X3D is that it is a whole 3D scene standard, meaning not only does it encapsulate 3D meshes contained within traditional standards, it has practically everything you want for a 3D world. Lighting, Materials, Networking, Sound, Events, Animation, Scripting, Physics / Collision, and a slew of other 3D scene properties can be described in the X3D format. Of course the trade off for being this complete is the complexity of the standard.
+
+The <a href="http://www.web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/">Draft Specifications</a> and <a href="http://www.web3d.org/specifications/x3d-3.0.xsd">xsd</a> go a long way to (starting to) understand the specification. At its root X3D is fairly straightforward, it is represented via xml files, created with a <i>generator</i> and parsed with a <i>loader</i>. Loaders do not run any of the dynamic / execution time components, rather a <i>browser</i> is used to manage <i>scenes/scene graphs</i>, the complete hierarchical set of all objects known as <i>nodes</i>. Nodes contain descriptive <i>fields</i> and <i>events</i> to manipulate and query the node state. 
+
+From there its just different node types which describe different types of <i>components</i> in the system. Components exist for 2D and 3D locations, coordinates, geometry, resources (audio, input, network, etc.), animation, collisions, navigation, organization, etc. Needless to say, alot of abstraction/inheritance is used, component interfaces sometimes expand several levels deep before concrete node object classes are defined. It's pretty complex but complete.
+
+There are a couple of X3D solutions out there, though the standard proposes many cross platform solutions. X3D aim to be as abstract, and thus as cross-platform/framework/etc. as possible. Solutions exist for <a href="http://openvrml.org/">C++</a> (with GTK), Java, ECMAScript (eg javascript), and even a <a href="http://cic.nist.gov/vrml/vbdetect.html">Firefox plugin</a>.
+
+X3D itself is a successor of the <a href="http://en.wikipedia.org/wiki/VRML">VRML</a> standard, the old VRML syntax is still supported as an alternative for xml. It's a relatively new standard, first approved in 2005, and at the very least an interesting study. I may continue to muck around with it, possibly using it in an new project in the future.

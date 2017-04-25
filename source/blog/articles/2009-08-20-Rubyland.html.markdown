@@ -1,0 +1,17 @@
+---
+title: Ruby-land
+date: 2009-08-20
+---
+
+We'll I'm back in <a href="http://www.ruby-lang.org/en/">Ruby-land</a>, my next project that I'm looking to release soon will be written in that. 
+
+I can't say I'm sad to be done w/ C++ for a little while, quite the contorary, while I still like C++ very much and it has a large place in the software world, no one can deny Ruby is just easier to write (at the expense of performance of course).
+
+So I just whipped up a quick <a href="http://en.wikipedia.org/wiki/Haiku">Haiku</a> about Ruby ;-). This is the first one I've ever written so its kinda historic (and fun, look out for more in future posts):
+
+<pre>
+Beautiful ruby
+code as if you are speaking
+programmer at ease
+</pre>
+<!--break-->

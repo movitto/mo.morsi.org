@@ -1,0 +1,82 @@
+---
+title: Rails 2.3.8 and 3.0.0.beta4 RPMS
+date: 2010-07-02
+---
+
+<%= image_tag 'ruby-fedora.png', :style => 'float: right; height: 250px; width: 200px; padding-left: 5px;' %>
+
+<p>
+Before I get to rails, note that an updated Ruby 1.8.7 srpm is now <a href="http://mo.morsi.org/files/rpms/ruby-1.8.7.299-1.fc13.src.rpm">available</a>. The latest 1.8.7 release tarball is now being used (p299), there are many fixes and improvements, and its pretty close to the final version which will be pushed into Fedora (of course any and all feedback and additional improvements are more than welcome). Many thanks go out to <a href="http://www.ohloh.net/accounts/meyering">Jim Meyering</a> and <a href="https://fedoraproject.org/wiki/MamoruTasaka">Mamoru Tasaka</a> for all their hard work and help to get to this point.
+</p>
+
+<p>
+I'm also pleased to announce new Ruby on Rails rpms (built against Ruby 1.8.7) corresponding to the 2.3.8 and 3.0.0.beta4 Rails releases. Admittedly these will most likely require additional tweaking to resolve any issues as they are discovered, but what's there should be the complete Rails suite packaged and ready to deploy. Feedback for any / all of these packages would also be much appreciated.
+</p>
+
+<p>
+Without further ado, here is the Rails 2.3.8 suite:
+</p>
+
+<ul>
+<li>
+activesupport:   <a href="http://mo.morsi.org/files/rpms/rubygem-activesupport-2.3.8-3.fc13.src.rpm">srpm</a>  <a href="http://mo.morsi.org/files/rpms/rubygem-activesupport-2.3.8-3.fc13.noarch.rpm">rpm</a>
+</li>
+
+<li>
+activerecord:    <a href="http://mo.morsi.org/files/rpms/rubygem-activerecord-2.3.8-1.fc13.src.rpm">srpm</a>   <a href="http://mo.morsi.org/files/rpms/rubygem-activerecord-2.3.8-1.fc13.noarch.rpm">rpm</a>
+</li>
+
+<li>
+actionpack:      <a href="http://mo.morsi.org/files/rpms/rubygem-actionpack-2.3.8-2.fc13.src.rpm">srpm</a>     <a href="http://mo.morsi.org/files/rpms/rubygem-actionpack-2.3.8-2.fc13.noarch.rpm">rpm</a>
+</li>
+
+<li>
+actionmailer:    <a href="http://mo.morsi.org/files/rpms/rubygem-actionmailer-2.3.8-1.fc13.src.rpm">srpm</a>   <a href="http://mo.morsi.org/files/rpms/rubygem-actionmailer-2.3.8-1.fc13.noarch.rpm">rpm</a>
+</li>
+
+<li>
+activeresource:  <a href="http://mo.morsi.org/files/rpms/rubygem-activeresource-2.3.8-1.fc13.src.rpm">srpm</a> <a href="http://mo.morsi.org/files/rpms/rubygem-activeresource-2.3.8-1.fc13.noarch.rpm">rpm</a>
+</li>
+
+<li>
+rails:           <a href="http://mo.morsi.org/files/rpms/rubygem-rails-2.3.8-1.fc13.src.rpm">srpm</a>          <a href="http://mo.morsi.org/files/rpms/rubygem-rails-2.3.8-1.fc13.noarch.rpm">rpm</a>
+</li>
+</ul>
+
+<p>
+And here is the the Rails 3.0.0.beta4 suite:
+</p>
+
+<ul>
+<li>
+activesupport:   <a href="http://mo.morsi.org/files/rpms/rubygem-activesupport-3.0.0.beta4-1.fc13.src.rpm">srpm</a> <a href="http://mo.morsi.org/files/rpms/rubygem-activesupport-3.0.0.beta4-1.fc13.noarch.rpm">rpm</a>
+</li>
+
+<li>
+activerecord:    <a href="http://mo.morsi.org/files/rpms/rubygem-activerecord-3.0.0.beta4-1.fc13.src.rpm">srpm</a> <a href="http://mo.morsi.org/files/rpms/rubygem-activerecord-3.0.0.beta4-1.fc13.noarch.rpm">rpm</a>
+</li>
+
+<li>
+actionpack:      <a href="http://mo.morsi.org/files/rpms/rubygem-actionpack-3.0.0.beta4-2.fc13.src.rpm">srpm</a> <a href="http://mo.morsi.org/files/rpms/rubygem-actionpack-3.0.0.beta4-2.fc13.noarch.rpm">rpm</a>
+</li>
+
+<li>
+actionmailer:    <a href="http://mo.morsi.org/files/rpms/rubygem-actionmailer-3.0.0.beta4-1.fc13.src.rpm">srpm</a> <a href="http://mo.morsi.org/files/rpms/rubygem-actionmailer-3.0.0.beta4-1.fc13.noarch.rpm">rpm</a>
+</li>
+
+<li>
+activeresource:  <a href="http://mo.morsi.org/files/rpms/rubygem-activeresource-3.0.0.beta4-1.fc13.src.rpm">srpm</a> <a href="http://mo.morsi.org/files/rpms/rubygem-activeresource-3.0.0.beta4-1.fc13.noarch.rpm">rpm</a>
+</li>
+
+<li>
+rails:           <a href="http://mo.morsi.org/files/rpms/rubygem-rails-3.0.0.beta4-1.fc13.src.rpm">srpm</a> <a href="http://mo.morsi.org/files/rpms/rubygem-rails-3.0.0.beta4-1.fc13.noarch.rpm">rpm</a>
+</li>
+</ul>
+
+<p>
+Also note you will need an updated sqlite3-ruby rpm to build either set, which I provide <a href="http://mo.morsi.org/files/rpms/rubygem-sqlite3-ruby-1.3.0-5.fc13.src.rpm">here</a> (rpm <a href="http://mo.morsi.org/files/rpms/rubygem-sqlite3-ruby-1.3.0-5.fc13.x86_64.rpm">here</a>).
+</p>
+
+<p>
+Enjoy!
+</p>

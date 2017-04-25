@@ -1,0 +1,26 @@
+---
+title: is-it-fedora-ruby - from an idea to an app
+date: 2012-08-20
+---
+
+<%= image_tag "ruby-fedora.png", :style => "float: left; padding-right: 10px" %>
+
+<p>
+Last January I attended and gave a few presentations at the <a href="http://mo.morsi.org/blog/node/360">Fedora Users and Developers Conference</a> in Blacksburg, Virgina. The conference was great, we accomplished alot, and among everything else the Fedora <a href="http://fedoraproject.org/wiki/Ruby_SIG">rubys-sig</a> met again to discuss packaging, distro, and other issues. During our discussions and all the work up to that point it became aparent that one of the main areas which the community was in need was on the promotional front, we had already done a slew of work to form a stable Ruby and Gem stack in Fedora with several applications relying on it (bringing some sanity to the mad world of ruby dependencies) but our efforts were going unheard of for a large part, lost in the torrent of other upstream ruby community discussions.
+</p>
+
+<p>
+To rectify this, I proposed developing a site similar to <a href="http://isitruby19.com/">isitruby19</a>, the now defunct isitmacruby, and the <a href="https://www.ruby-toolbox.com/">ruby toolbox</a>. This would provide a simple one-stop shop for ruby developers and users alike, where the current stack in Fedora could be easily viewed and discussed, and cross-referenced with the gem metadata stored at rubygems.org. Unfortunately like so many other ideas, this one was put on the backburner in lieu of more pressing work, but would come up periodically as we <a href="https://lists.fedoraproject.org/mailman/listinfo/ruby-sig">discussed</a> various ways to grow the Ruby community.
+</p>
+
+<p>
+As luck would have it, Fedora was again selected as one of the sponsored organizations for the <a href="https://fedoraproject.org/wiki/GSOC_2012">google summer of code</a> which I saw as an opportunity to drive this project forward. I wrote up the call for proposals, registered as a mentor, and submitted the document. The project received a few applicants, and I felt that <a href="http://zuhao.me/">Zuhao</a> was the best fit for it so together we flushed out a plan of attack.
+</p>
+
+<p>
+The rest was fairly straightforward. Zuhao did the vast majority of the coding over the summer, I submitted a few patches every once in a while to "rubify" things or to implement a small feature. We formally met via IRC on Fridays, and discussed and designed things via email throughout the week. Around the middle of the summer, we deployed the site on a vm on one of my servers, and as the project continued to evolve, we registered the <a href="http://isitfedoraruby.com/">isitfedoraruby.com</a> domain and pointed it there. The vm just contained a clone of the project's <a href="https://github.com/zuhao/isitfedoraruby">git repo</a> so that the latest updates could be deployed very rapidly and we wouldn't have to worry about packaging for the time being. In the near future we will be bundling everything up into formal releases and pushing the packages into the Fedora and Debian release cycles.
+</p>
+
+<p>
+All in all, I'm very pleased with Zuhao's progress and the application has been gaining traction amongst the Fedora / Ruby community. We're looking at and are continuing to expand the metadata that is stored in the application and displaying it in unique ways which can't be viewed elsewhere. Make sure to frequent the site as it continues to evolve!
+</p>

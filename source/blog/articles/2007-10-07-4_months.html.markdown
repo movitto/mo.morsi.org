@@ -1,0 +1,10 @@
+---
+title: 4 months...
+date: 2007-10-07
+---
+
+and no update (shows you how much I'm into blogging :-p). In addition I'm only adding this blurb because I'm about to add a new howto detailing instructions on installing Fedora 7 on the Dell Latitude D830. 
+
+But in any case, all in well in the life of Mohammed Morsi, I finished up my internship in New York City (I hope to be back soon, as it is truly an amazing city) and am working full time for Red Hat (the company I interned for (twice)). I'm in Raleigh, NC temporarily (where my company's headquarters is located) so I can work on site with my team, but come early November I can essentially work out of whereever I want. I'm going back to Syracuse (hopefully for only a few months) so that I can finish my masters thesis and get my graduate degree. After that as mentioned I may move back to New York city, out to California to visit my good friend Dave Rappaport, to Boston where my company's main technical office is located (alot of Kernel and Gnome engineers work out of that one), or perhaps to one of the many international offices Red Hat has around the world (I like to travel, and I love that I have the choice). 
+
+As for my actual job, I am working on the backend to RHX (http://rhx.redhat.com) and on various other tasks my company is having me do. I'm not sure how much I can talk about the actual code I'm writing, but it is very easy/straight forward for the most part and I was able to pick it up and start being productive from week one. I do have a sweet new laptop (the Dell Latitude mentioned before) and will post my full review and installation guide by the end of the day (hopefully :-/). Take it easy!

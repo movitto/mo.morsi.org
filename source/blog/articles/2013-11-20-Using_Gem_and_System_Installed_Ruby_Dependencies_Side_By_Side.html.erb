@@ -1,0 +1,27 @@
+---
+title: Using Gem and System Installed Ruby Dependencies Side By Side
+date: 2013-11-20
+tags: bundler_ext, rubygems, ruby
+---
+
+<%= image_tag "gembundler.png", :style => "display: block; width: 50%" %>
+
+<p>
+Be sure to checkout the latest <a href="https://github.com/bundlerext/bundler_ext/commit/ad57f28f726afd57d502218982a75e6071b3f1fd">updates</a> to the <a href="https://github.com/bundlerext/bundler_ext">bundler_ext</a> project which now permits the activation of Gemfile dependencies that have been installed system wide (eg via yum, apt-get, or other).
+</p>
+
+<p>
+bundler_ext is a simple library allowing Ruby developers to bypass the local vendored gem install process, rather relying on gems already installed by the end user or system administrator. By default after installing and importing bundler_ext into your project (see the README), the modules that are auto-required by the gems described in the project's Gemfile are pulled in and then nothing else will be done, vendored deps are not installed. Other dependencies that are required will be loaded on the fly from the latest versions installed system wide, as 'require' statements are encountered.
+</p>
+
+<p>
+The end user is responsible for ensuring only the required versions of gems are installed and accessible, else incompatible dependencies may be pulled in at runtime. The latest patch to bundler_ext permits multiple versions to be available, as the user can now specify the BEXT_ACTIVATE_VERSIONS environment variable to instruct bundler_ext to lookup the versions of dependencies that have been install via the native package management system (yum, apt-get, or other), and activate those ahead of time. Therefore any Ruby application can now easily switch between the system-wide/distro-supported stack, the latest stack of dependencies available, or the traditional bundler-installed vendored dependencies by toggling a few flags.
+</p>
+
+<p>
+On the backend, bundler_ext uses <a href="https://github.com/ManageIQ/linux_admin">linux_admin</a> to query the native package system to lookup the versions of dependencies (linux_admin is pulled in as a soft-dependency, and isn't required unless BEXT_ACTIVATE_VERSIONS is set true). The patches adding the necessary functionality have been merged into the bundler_ext and linux_admin upstream repos with a couple of small style and metadata changes in flight before new releases are pushed to rubygems.org.
+</p>
+
+<p>
+Hope this helps Ruby developers looking for a supported stack while still maintaining the flexibility that rubygems and bundler provides.
+</p>

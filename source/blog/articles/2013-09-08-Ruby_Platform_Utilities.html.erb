@@ -1,0 +1,57 @@
+---
+title: Ruby Platform Utilities
+date: 2013-09-08
+tags: ruby, polisher
+---
+
+<%= image_tag "Application-x-ruby.png", :style => "float: right" %>
+
+<p>
+Greetings, it's been a while! Today I'm sharing a few utilities that we've been working on during the ongoing process to shore up our platform for Ruby development/deployment
+</p>
+
+<p>
+Jumping right into it, the first of these is a set of tools aimed geared at evaluating a <a href="http://bundler.io/">Bundler</a> Gemfile against Fedora and Red Hat resources. Dubbed the <a href="https://github.com/ManageIQ/gem_dependency_checker">gem dependency checker</a>  the title script processes the specified gemfile, comparing dependencies against a slew of targets including the Fedora API, Koji, Bodhi, Bugzilla, and more. Dependencies are retrieved from rubygems.org recursively and versions are matched so that the end user can fully visualize how much of their application is currently supported. It is fully extensible as additonal targets to check can be easily added to incorporate support for more platforms. 
+</p>
+
+
+<p>
+A small asciicast of the tool in action can be seen <a href="http://ascii.io/a/4488">here</a> (note it's an earlier version when it was known as 'rhgc.rb')
+</p>
+
+
+<script type="text/javascript" src="http://ascii.io/a/4488.js" id="asciicast-4488" async></script>
+
+<p>
+Additional utilities which we are developing in this suite include a <a href="https://github.com/ManageIQ/gem_dependency_checker/blob/master/binary_gem_resolver.rb">binary dependency</a> analyzer which looks up missing dependencies needed to build a binary gem package (for example libmysql is required to build the ruby mysql binding and libcurl is required to build the ruby curb library) using the native package system. Also in flight is a small utility aimed at mass updating gem packages along with new dependencies against a distribution repository, so as to continue to optimize the workflow of getting Ruby software into production.
+</p>
+
+
+<p>
+Geared towards more general linux system administration is the <a href="https://github.com/ManageIQ/linux_admin">Linux Admin</a> gem which a few of us have been developing as part of the new <a href="http://www.redhat.com/products/cloud-computing/cloudforms/">CloudForms</a> release. The overall goal is to provide a simple / high level Ruby based management interface and dsl to perform common Linux system administration tasks. For example, you could use LinuxAdmin to read local disks, partitions, and create and format a new partition like so:
+</p>
+
+
+<% code("ruby") do %>
+require 'pp'
+require 'linux_admin'
+LinuxAdmin::Disk.local.each do |disk|
+  pp disk.path
+  pp disk.size
+  disk.partitions.each { |p| 
+    pp " #{p.id} #{p.fs_type} #{p.size} #{p.mount_point}"
+  }
+end
+
+disk = LinuxAdmin::Disk.local.last
+disk.create_partition 'primary', :start => '0%', :end => '50%'
+disk.partitions.first.format_to 'ext3'
+<% end %>
+
+<p>
+LinuxAdmin has growing support for many various subsystems including LVM, RHN, yum, sysvinit and many more and provides a solid platform for further automation of many Linux administration tasks from Ruby. LinuxAdmin will take care of the necessary console and other backend calls to perform the intended functionality, wrapping any errors or output in nicely consumable Ruby objects for further processing. 
+</p>
+
+<p>
+That's it until next time!
+</p>

@@ -1,0 +1,18 @@
+---
+title: Fedora / Ruby 1.9 Virtual Appliance
+date: 2010-06-02
+---
+
+<%= image_tag 'ruby-fedora.png', :style => 'float: right;' %>
+I am pleased to release a Fedora 12 based <a href="http://projects.morsi.org/polisher/appliances/polisher-devel.tgz">appliance</a> complete w/ a stack of rpms built against and related to Ruby 1.9.1.  
+
+This was built using <a href="http://github.com/movitto/polisher">Polisher</a>, which I improved extensively and <a href="http://github.com/movitto/polisher-scripts">configured</a> to generate various RPMs and <a href="http://projects.morsi.org/polisher/repos">yum repos</a>. There are now many more rpms being generated/hosted since my last announcement, and after alot of work I finally got ruby-shadow to compile against Ruby 1.9.1. The packages themselves were built in mock, and made use of Polisher's project dependency support, so that projects built against the 'devel' repo were being built against the Ruby 1.9 package that resided there.
+
+To make use of the appliance, download and extract the tarball, and run 'virt-image' on the polisher-devel.xml file (you will need the <a href="http://www.thincrust.net/">appliance tools</a> installed). This will take care of all the work for you, you can then just open virt-manager, virt-viewer, or any other virt client and use a Ruby 1.9.1 build for Fedora!
+
+Many thanks go out to those on <a href="http://lists.fedoraproject.org/pipermail/ruby-sig/">ruby-sig</a> for all the work to support Ruby on Fedora, especially <a href="http://www.kanarip.com/">Jeroen</a> for the Ruby 1.9.1 spec file (and all the other work/research) which I initially based this of off. There were several other changes that went into it as issues were discovered, particularily some patches from Ruby 1.8.6 had to be readded to fix issues, and care had to be taken due to the fact that rubygems and rake were both merged into the official Ruby project stating in Ruby 1.9 (right now I figured the easiest way to handle this was to change those packages to be empty and just depend on / pull in the Ruby rpm).
+
+There is still alot more work to do, eg nits w/ a few of the specific scripts, support for more projects, and a working Ruby 1.8.7 appliance (the maintenance repo and 1.8.7 specfile are still a work in progress). But what is there is a very easy way to run Ruby 1.9 natively on Fedora, and to start testing various software stacks. Until the next update, I leave you with this, a screenshot of Fedora 12 running a ruby-gnome app built/running against Ruby 1.9 (source code is attached to this post). Enjoy!
+
+<%= image_tag 'ruby-19-fedora.png', :style => 'width: 750px; height: 650px;' %>
+<div style="clear: both"></div>

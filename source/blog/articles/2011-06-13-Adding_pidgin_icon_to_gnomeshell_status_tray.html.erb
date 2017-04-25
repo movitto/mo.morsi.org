@@ -1,0 +1,56 @@
+---
+title: Adding pidgin icon to gnome-shell status tray
+date: 2011-06-13
+---
+
+<p>
+While it's a great interface to the system, one thing I miss with the new <a href="http://live.gnome.org/GnomeShell">gnome-shell</a> (now being shipped by default with <a href="http://fedoraproject.org/">Fedora 15</a>) is a system-tray status icon for Pidgin, my preferred IM and IRC client.
+</p>
+
+<p>
+The current graphical notification, residing in the messages/notification area, doesn't quite cut it as that area auto-disappears and as I would like some persistently on the screen at all times, continuously flashing until I respond if I get a new message. I'm sure I could turn off the auto-disappearing feature, but I like that functionality the way it is.
+</p>
+
+<p>
+Fortunately adding the icon back to the system status area in the upper right is trivial. Simply create the following directory 
+</p>
+
+<p>
+<b>~/.local/share/gnome-shell/extensions/pidgin.status@gnome-shell.morsi.org</b> 
+</p>
+
+<p>
+Then copy these two files in there
+</p>
+
+<p>
+<b>metadata.json</b>
+</p>
+
+<% code("javascript") do %>
+{
+  "shell-version": ["3.0.2"], 
+  "uuid": "pidgin.status@gnome-shell.morsi.org", 
+  "name": "Pidgin Status Icon", 
+  "description": "Integrates Pidgin Messaging Client into the status bar"
+}
+<% end %>
+
+<p>
+<b>extension.js</b>
+</p>
+
+<% code("javascript") do %>
+// Creates a system status notification icon for pidgin
+
+const StatusIconDispatcher = imports.ui.statusIconDispatcher;
+
+// gnome-shell extension entry point
+function main() {
+    StatusIconDispatcher.STANDARD_TRAY_ICON_IMPLEMENTATIONS['pidgin'] = 'pidgin';
+}
+<% end %>
+
+<p>
+Then simply restart gnome-shell by pressing <b>alt-f2</b> and typing <b>r</b> and hitting enter. Now you should see the Pidgin icon in the upper right!
+</p>

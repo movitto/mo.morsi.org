@@ -1,0 +1,470 @@
+---
+title: Bitcoin Aware Barbers Pole
+date: 2015-09-26
+tags: bitcoin, projects, sig315
+---
+
+<p>
+A few months <a href="http://www.meetup.com/Syracuse-Innovators/events/220627291/">back</a> the <a href="http://sig315.org">guild</a> hosted an <a href="https://day.arduino.cc/#/">Arduino Day</a> workshop. The event was a great success, there was a large turnout, many neat presentations & demos, and much more. My project for the day was an <a href="https://en.wikipedia.org/wiki/Arduino">Arduino</a> controlled <a href="https://en.wikipedia.org/wiki/Barber's_pole">Barber's Pole</a> that would poll data from the network and activate/deactivate multiple <a href="https://en.wikipedia.org/wiki/Electroluminescent_wire">EL wires</a> attached to it. Unfortunately due to a few technical issues the project took a bit longer than originally planned and had to be sidelined. But having recently finished it up, I present the <a href="https://en.wikipedia.org/wiki/Bitcoin">Bitcoin</a> Aware Barber's Pole, now on display at the guild!
+</p>
+
+<%= link_to image_tag("barber1.jpg", :style=> "width: 65%"), "barber1.jpg" %>
+
+<p>
+The premise was straightforward, an <a href="https://www.arduino.cc/en/Main/ArduinoBoardDiecimila">Arduino Diecimila</a> would be used in combination with the <a href="https://www.arduino.cc/en/Main/ArduinoBoardEthernet">Ethernet Shield</a> to retrieve data from the Internet and activate one of two el-wires mounted to a pole like object. For that several materials were considered but we ended up using pvc as it was easiest to work with and was what we were going for aesthetically. Since the EL wire is driven from an AC source we used two SPDT relays to activate the circuit based on the state of the Arduino's digital pin output. The constructed circuit was simple, incorporating the necessary components to handle <a href="https://en.wikipedia.org/wiki/Flyback_diode">flyback current</a>.
+</p>
+
+<%= link_to image_tag("arduino-pole.svg",      :style => "width: 45%"),  "arduino-pole.svg" %>
+<%= link_to image_tag("barber-circuitry1.jpg", :style => "width: 45%"), "barber-circuitry1.jpg" %>
+
+<p>
+The software component of this project is what took the most time, due to several setbacks. Perhaps the biggest was the shortage of address space we had to work with, micro-controller platforms are notorious for this, but the Diecimila only gave us <a href="https://en.wikipedia.org/wiki/List_of_Arduino_boards_and_compatible_systems#Arduino_Diecimila">16KB</a> of flash memory to use, which after what I'm assuming is space for the bootloader, shared libraries, and other logic is reserved, amounts to ~14KB of memory for the user program and data. Contrast this to modern general purpose PCs, where you'd be hard pressed to find a system with less than 2GB of memory! This had many side effects including not having enough address space to load and use the Arduino <a href="https://github.com/amcewen/HttpClient">HttpClient</a> or <a href="https://github.com/bblanchon/ArduinoJson">Json</a> libraries. Thus a very rudimentary <a href="https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol">HTTP</a> parsing and request implementation was devised so as to serve the application's needs. All and all it was very simple but specialized, only handling the edge cases we needed an nothing else.
+</p>
+
+<p>
+Of course the limited address space meant we were also limited in the amount of constants and variables we could use. Using the <a href="https://en.wikipedia.org/wiki/Memory_management#DYNAMIC">heap</a> (also small on this platform) always introduces additional complexities / logic of its own so was avoided. Since each data source would require the metadata needed to access it, we decided to only poll one location and use it to activate either of the two el-wires depending on its state.
+</p>
+
+<p>
+<i>In all of this you may be asking why we just didn't order a newer Arduino chip with a bigger address space to which I reply what would I do with the one that I had?!?! Plus developing for platforms with memory &amp; other restrictions introduces fun challenges of its own.</i>
+</p>
+
+<%= link_to image_tag("engineering.jpg", :style => "width: 50%"), "engineering.jpg" %>
+
+<p>
+At one point we tried splitting the sketch into multiple modules via the Arduino IDE interface. This was done to try and better organize the project, in a more <a href="https://en.wikipedia.org/wiki/Object-oriented_design">OOD</a> fashion, but introduced more complexities than it was worth. From what I gather, most sketches are single module implementations, perhaps incorporating some external libraries via the standard mechanisms. When we attempted to deviate from this we noticed so weird behavior, perhaps as a result of the includes from centralized Arduino & supporting libraries being pulled into multiple modules. We didn't debug too far, as overall the application isn't that complex.
+</p>
+
+<p>
+One of the last challenges we had to face was selecting the data to poll. Again due to the limited memory space, we could only store so much http response data. Additionally even any rudimentary parsing of JSON or other format would take a bit of logic which we didn't have the space for. Luckily we found <a href="http://bitcoinaverage.com/">Bitcoin Average</a> which provides an awesome API for getting up-to-date Bitcoin market data. Not only do they provide a rich JSON over <a href="https://en.wikipedia.org/wiki/Representational_state_transfer">REST</a> interface, but fields can be polled individually for their flat text values, for which we retrieve the <b>BTC/USD</b> market average every 5 minutes. When bitcoin goes <b>up</b>, the <b>blue</b> light is activated, when it goes <b>down</b>, the <b>red</b> light is turned on. Of course this value is a <a href="https://en.wikipedia.org/wiki/Floating_point">decimal</a> and enabling floating point arithmetic consumes more memory. To avoid this, we parsed the integer and decimal portions of the currency separately and ran the comparisons individually (in sequence).
+</p>
+
+<p>
+But unfortunately there was one last hiccup! While the Bitcoin Average <a href="https://bitcoinaverage.com/api">documentation</a> stated that HTTP was supported, but in fact querying their server via port 80 just resulted in a <a href="https://en.wikipedia.org/wiki/HTTP_301">301 redirect</a> to HTTPS running on 443. Since even w/ more modern Arduino platforms w/ larger address spaces, HTTPS/SSL handling proves to be outright <a href="http://forum.arduino.cc/index.php?topic=13134.0">impossible</a> due to the complexity of the algorithms, we had to devise a solution to be able to communicate with the server via http in order to retrieve the data. To do so we wrote & deployed a proxy that listens for http requests, issue a https request to bitcoin average and returned the result. This was simple enough to do w/ the <a href="http://www.sinatrarb.com/">Sinatra</a> micro-framework as you can see below:
+</p>
+
+<% code("ruby") do %>
+# HTTP -> HTTPS proxy
+# Written to query the bitcoinaverage.com via http (only accessible by https).
+# Run as a standard Rack / Sinatra application
+#
+# Author: Mo Morsi <mo@morsi.org>
+# License: MIT
+
+require 'sinatra'
+require 'open-uri'
+
+URL = "https://api.bitcoinaverage.com/ticker/USD/last"
+
+get '/' do
+  open(URL) do |content|
+    content.read
+  end
+end
+<% end %>
+
+<p>
+The final result was hosted on <a href="http://projects.morsi.org/barber/">this server</a> and the Arduino sketch was updated to use it. All in all the <a href="https://gist.github.com/movitto/796ea02d939d98aa4111">logic</a> behind the Barber's Pole can be seen below:
+</p>
+
+<% code("cpp") do %>
+//// Bitcoin Barber Shop Pole
+//// Author: Mo Morsi <mo@morsi.org>
+//// Arduino Controller Sketch
+////
+//// License: MIT
+//// For use at the Syracuse Innovators Guild (sig315.org)
+
+#include <SPI.h>
+#include <Ethernet.h>
+
+//////////////////////////////////
+//// sketch parameters
+
+byte mac[]                           = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+int port                             = 80;
+char server[]                        = "projects.morsi.org";
+char host[]                          = "Host: projects.morsi.org";
+char request[]                       = "GET /barber/ HTTP/1.1";
+char user_agent[]                    = "User-Agent: arduino-ethernet";
+char close_connection[]              = "Connection: close";
+char content_length_header[]         = "Content-Length";
+
+char CR                              = '\r';
+char NL                              = '\n';
+
+unsigned long lastConnectionTime     = 0;
+const unsigned long postingInterval  = 300000; // - every 5 mins
+boolean lastConnected                = false;
+
+const int  max_data                  = 32;
+int  data_buffer_pos                 = 0;
+char data_buffer[max_data];
+int  content_length                  = -1;
+boolean in_body                      = false;
+
+int current_btc                      = 0;
+int current_btc_decimal              = 0; // since were not using floats
+
+const int blue_pin                   = 5;
+const int red_pin                    = 7;
+unsigned long lastLightingTime       = -1;
+const unsigned long lightingInterval = 5000;
+
+//////////////////////////////////
+// arduino hook in points & config
+
+EthernetClient client;
+
+void setup() {
+  pins_config();
+
+  serial_config();
+  delay(5000);
+
+  net_config();
+  delay(1000);
+
+  turn_on_both();
+
+  Serial.println("started");
+}
+
+void loop() {
+  net();
+  lights();
+}
+
+void pins_config(){
+  pinMode(blue_pin, OUTPUT);
+  pinMode(red_pin, OUTPUT);
+}
+
+void serial_config(){
+  Serial.begin(9600);
+  while (!Serial) { ; } // this check is only needed on the Leonardo
+}
+
+/////////////////////////////
+// network operations
+
+void net(){
+  net_read();
+  if(should_reset())
+    net_reset();
+  else if(should_issue_request())
+    net_request();
+
+  process_response();
+  lastConnected = client.connected();
+}
+
+void block(){
+  for(;;) { ; }
+}
+
+boolean should_reset(){
+  return !client.connected() && lastConnected;
+}
+
+void net_reset(){
+  client.stop();
+}
+
+boolean should_issue_request(){
+  return !client.connected() && (millis() - lastConnectionTime > postingInterval);
+}
+
+void net_config(){
+  if (Ethernet.begin(mac) == 0) {
+    Serial.println("net failed");
+    block();
+  }
+}
+
+void net_read(){
+  if(client.available()) {
+    char c = client.read();
+    buffer_append(c);
+    //Serial.print(c);
+  }
+}
+
+void net_request(){
+  if (client.connect(server, port)) {
+    client.println(request);
+    client.println(host);
+    client.println(user_agent);
+    client.println(close_connection);
+    client.println();
+
+    lastConnectionTime = millis();
+
+  }else {
+    client.stop();
+  }
+}
+
+//////////////////////////////////
+// data buffer management
+
+void buffer_append(char c){
+  data_buffer[data_buffer_pos] = c;
+  data_buffer_pos += 1;
+  if(data_buffer_pos >= max_data)
+    data_buffer_pos = 0;
+}
+
+void buffer_reset(){
+  data_buffer_pos = 0;
+}
+
+// moves last char in buffer to first, sets pos after
+void buffer_cycle(){
+  data_buffer[0]  = data_buffer[data_buffer_pos-1];
+  data_buffer_pos = 1;
+}
+
+void buffer_print(){
+  Serial.print("buf ");
+  Serial.print(data_buffer_pos);
+  Serial.print(": ");
+  for(int p = 0; p < data_buffer_pos; p++)
+    Serial.print(data_buffer[p]);
+  Serial.println();
+}
+
+//////////////////////////////////
+// http parsing / handling
+
+// https://en.wikipedia.org/wiki/HTTP_message_body
+
+int char_pos(char ch){
+  for(int p = 1; p < data_buffer_pos; p++)
+    if(data_buffer[p] == ch)
+      return p;
+  return -1;
+}
+
+int seperator_pos(){
+  return char_pos(':');
+}
+
+int decimal_pos(){
+  return char_pos('.');
+}
+
+boolean status_detected(){
+  if(data_buffer_pos < 4) return false;
+  int cr_pos    = data_buffer_pos - 3;
+  int lf_pos    = data_buffer_pos - 2;
+  int alpha_pos = data_buffer_pos - 1;
+
+  // only upper case letters
+  int alpha_begin = 65;
+  int alpha_end   = 90;
+
+  return data_buffer[cr_pos]    == CR          &&
+         data_buffer[lf_pos]    == NL          &&
+         data_buffer[alpha_pos] >= alpha_begin &&
+         data_buffer[alpha_pos] <= alpha_end;
+}
+
+boolean header_detected(){
+  if(data_buffer_pos < 5) return false;
+  int cr_pos     = data_buffer_pos - 2;
+  int lf_pos     = data_buffer_pos - 1;
+
+  return seperator_pos()     != -1   &&
+         data_buffer[cr_pos] == CR   &&
+         data_buffer[lf_pos] == NL;
+}
+
+boolean is_header(char* name){
+  int pos = 0;
+  while(name[pos] != '\0'){
+    if(name[pos] != data_buffer[pos])
+      return false;
+    pos++;
+  }
+  return true;
+}
+
+boolean body_detected(){
+  if(data_buffer_pos < 4) return false;
+  int first_cr  = data_buffer_pos - 4;
+  int first_lf  = data_buffer_pos - 3;
+  int second_cr = data_buffer_pos - 2;
+  int second_lf = data_buffer_pos - 1;
+
+  return (data_buffer[first_cr]  == CR &&
+          data_buffer[first_lf]  == NL &&
+          data_buffer[second_cr] == CR &&
+          data_buffer[second_lf] == NL);
+}
+
+int extract_content_length(){
+  int value_pos = seperator_pos() + 1;
+  char content[data_buffer_pos - value_pos];
+  for(int p = value_pos; p < data_buffer_pos; p++)
+    content[p-value_pos] = data_buffer[p];
+  return atoi(content);
+}
+
+void process_headers(){
+  if(status_detected()){
+    buffer_cycle();
+
+  }
+  else if(header_detected()){
+    if(is_header(content_length_header))
+      content_length = extract_content_length();
+    buffer_reset();
+
+  }
+  else if(body_detected()){
+    in_body = true;
+    buffer_reset();
+  }
+}
+
+int extract_new_btc(){
+  int decimal  = decimal_pos();
+  int buf_size = decimal == -1 ? data_buffer_pos - 1 : decimal;
+  int iter_end = decimal == -1 ? data_buffer_pos     : decimal;
+
+  char value[buf_size];
+  for(int p = 0; p < iter_end; p++)
+    value[p] = data_buffer[p];
+  return atoi(value);
+}
+
+int extract_new_btc_decimal(){
+  int decimal  = decimal_pos();
+  if(decimal == -1 || decimal == data_buffer_pos - 1) return 0;
+  int buf_size = data_buffer_pos - decimal - 1;
+  int iter_start = decimal + 1;
+
+  char value[buf_size];
+  for(int p = iter_start; p < data_buffer_pos; p++)
+    value[p - iter_start] = data_buffer[p];
+  return atoi(value);
+}
+
+void process_body(){
+  if(!in_body || data_buffer_pos < content_length) return;
+
+  //buffer_print();
+  process_new_btc(extract_new_btc(), extract_new_btc_decimal());
+
+  content_length = -1;
+  in_body = false;
+  buffer_reset();
+}
+
+void process_response(){
+  if(!in_body)
+    process_headers();
+  else
+    process_body();
+}
+
+//////////////////////////////////
+// target specific data processing
+
+void print_btc(int btc, int btc_decimal){
+  Serial.print(btc);
+  Serial.print('.');
+  Serial.print(btc_decimal);
+  Serial.println();
+}
+
+boolean value_increased(int new_btc, int new_btc_decimal){
+  return new_btc > current_btc || (new_btc == current_btc && new_btc_decimal > current_btc_decimal);
+}
+
+boolean value_decreased(int new_btc, int new_btc_decimal){
+  return new_btc < current_btc || (new_btc == current_btc && new_btc_decimal < current_btc_decimal);
+}
+
+void process_new_btc(int new_btc, int new_btc_decimal){
+  //print_btc(current_btc, current_btc_decimal);
+  //print_btc(new_btc, new_btc_decimal);
+
+  if(value_increased(new_btc, new_btc_decimal)){
+    turn_on_blue();
+
+  }
+  else if(value_decreased(new_btc, new_btc_decimal)){
+    turn_on_red();
+
+  }
+  else{
+    turn_on_both();
+  }
+
+  current_btc = new_btc;
+  current_btc_decimal = new_btc_decimal;
+}
+
+//////////////////////////////////
+// pin output handling
+
+boolean should_turn_off(){
+  return lastLightingTime != -1 && (millis() - lastLightingTime > lightingInterval);
+}
+
+void lights(){
+  if(should_turn_off()){
+    turn_off_both();
+    lastLightingTime = -1;
+  }
+}
+
+void turn_on_blue(){
+  lastLightingTime = millis();
+  digitalWrite(blue_pin, HIGH);
+}
+
+void turn_off_blue(){
+  digitalWrite(blue_pin, LOW);
+}
+
+void turn_on_red(){
+  lastLightingTime = millis();
+  digitalWrite(red_pin, HIGH);
+}
+
+void turn_off_red(){
+  digitalWrite(red_pin, LOW);
+}
+
+void turn_on_both(){
+  turn_on_blue();
+  turn_on_red();
+}
+
+void turn_off_both(){
+  turn_off_blue();
+  turn_off_red();
+}
+<% end %>
+
+<p>
+The actual construction of the pole consists of a short length of PVC pipe capped at both ends. The text was spray painted over and a small hole drilled in the back for the power & network cables. The circuity was simply placed flat inside the pvc, no special mounting or attachments were used or needed.
+</p>
+
+<p>
+The final setup was placed near the enterance of the Guild where anyone walking in / out could see it.
+</p>
+
+<%= link_to image_tag("barber-enterance.jpg", :style => "width: 45%"), "barber-enterance.jpg" %>
+<%= link_to image_tag("barber-closeup.jpg",   :style => "width: 25%"), "barber-closeup.jpg" %>
+
+<p>
+All in all it was a fun project that took a bit longer than originally planned, but when is that not the case?! Microcontrollers always prove to be unique environments, and although in this case it just amounted to some C++ development, the restricted platform presented several interesting challenges I hadn't encountered since grad school. Going forward I'm contemplating looking into the <a href="https://en.wikipedia.org/wiki/Raspberry_Pi">Raspberry Pi</a> platform for my next project as it seems to be a bit more flexible & has more address space, while still available at a great price point.
+</p>
+
+<p>
+Sayonara!
+</p>

@@ -1,0 +1,113 @@
+---
+title: Aeolus at the Ohio LinuxFest - Part III Conductor & CLI
+date: 2012-09-26
+tags: aeolus, ohiolinuxfest
+---
+
+<p>
+See my <a href="http://mo.morsi.org/blog/node/372">first</a> article in the series to set up cloud providers, and my <a href="http://mo.morsi.org/blog/node/373">second</a> article on using the core Aeolus components.
+</p>
+
+<h2>Web interface</h2>
+
+<p>
+To setup the full Aeolus suite, simply:
+</p>
+
+<code>
+  yum install aeolus-all
+  aeolus-configure
+</code>
+
+<p>
+Open a web browser and navigate to <i>http://localhost/conductor</i> to access the conductor web interface.
+</p>
+
+<p>
+Login w/ the default credentials ('admin' / 'password').
+</p>
+
+<p>
+To manage cloud provider, click 'admin' and 'providers':
+</p>
+
+<%= link_to image_tag("aeolus-01-cloud-providers_0.png", :style => "width: 500px; height:250px;"), image_path("aeolus-01-cloud-providers_0.png") %>
+
+<p>
+Add a new provider and provider account, specifying the type and location
+of the provider, access credentials, and uri of the deltacloud instance
+through which to connect to it.
+</p>
+
+<%= link_to image_tag("aeolus-02-provider-details_0.png", :style => "width: 250px; height:125px; float: left; margin-right: 10px;"), image_path("aeolus-02-provider-details_0.png") %><%= link_to image_tag("aeolus-03-provider-account_0.png", :style => "width: 250px; height:125px;"), image_path("aeolus-03-provider-account_0.png") %>
+
+<p>
+Manage cloud hardware and realms:
+</p>
+
+<%= link_to image_tag("aeolus-04-hwp1_0.png", :style => "width: 250px; height:125px; float: left; margin-right: 10px;"), image_path("aeolus-04-hwp1_0.png") %><%= link_to image_tag("aeolus-05-hwp2_0.png", :style => "width: 250px; height:125px;"), image_path("aeolus-05-hwp2_0.png") %>
+
+<%= link_to image_tag("aeolus-06-realms.png", :style => "width: 250px; height:125px;"), image_path("aeolus-06-realms.png") %>
+
+<p>
+Manage pools of providers and environment which instances run in:
+</p>
+
+<%= link_to image_tag("aeolus-08-environments.png", :style => "width: 500px; height:250px;"), image_path("aeolus-08-environments.png") %>
+
+<p>
+Manager users and rights:
+</p>
+
+<%= link_to image_tag("aeolus-09-users.png", :style => "width: 500px; height:250px;"), image_path("aeolus-09-users.png") %>
+
+<p>
+Build images and start instances themselves on providers according
+to any number of metrics:
+</p>
+
+<%= link_to image_tag("aeolus-10-build-image.png", :style => "width: 250px; height:125px; float: left; margin-right: 10px;"), image_path("aeolus-10-build-image.png") %><%= link_to image_tag("aeolus-11-deployment-metrics.png", :style => "width: 250px; height:125px;"), image_path("aeolus-11-deployment-metrics.png") %>
+
+
+<h2>CLI</h2>
+<p>
+To connect via the command line, setup a ~/.aeolus-cli file containing the credentials which to use to connect to conductor:
+</p>
+
+<% code do %>
+   :conductor:
+     :url: https://localhost/conductor/api
+     :username: admin
+     :password: password
+<% end %>
+  
+<p>
+Yum install the command line utility:
+
+<% code do %>
+   # yum install aeolus-cli
+<% end %>
+
+<p>
+All operations available via the web interface are also available from the command line:
+</p>
+
+<% code do %>
+   $ aeolus --help
+
+   $  aeolus hwp list
+
+   $  aeolus hwp create --name demo
+
+   $  aeolus image --help
+<% end %>
+
+<h2>&lt;/presentation&gt;</h2>
+
+<p>
+That about wraps up the presentation content that I had prepared, besides a small / minimal set of slides that I will be posting shortly. I have also downloaded a few screencasts off our <a href="http://www.youtube.com/user/aeolusproject">youtube</a> channel as a backup plan incase things go awry with one of my machines (there is a nice / short one on the Audrey config server that I'll probably end up showing anyways to demo that component).
+</p>
+
+<p>
+Stay tuned for my final post in this series!
+</p>

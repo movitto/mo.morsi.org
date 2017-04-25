@@ -1,0 +1,26 @@
+---
+title: libvirtd default network on a vm
+date: 2011-12-05
+---
+
+<div  style="float: right; margin-right: 10px; width: 45%;">
+  <%= image_tag "libvirt_0.png" %>
+</div>
+
+<div style="float: left; width: 40%">
+  <p>
+  I've run into this issue so many times that I figure I'd share the solution incase anyone else has a similar problem. If you are running libvirtd on a vm which was in itself started by libvirt, make sure you change the network address of the default libvirt network on the vm. Or alternatively simply run the following command to shut it down:
+  </p>
+
+  <b>$ sudo virsh net-destroy default</b>
+
+  <p>
+    This is because otherwise the addresses of the libvirt created networks running on the vm and your host machine will clash and cause conflicts / routing errors.
+  </p>
+
+  <p>
+    Hope this helps!
+  </p>
+</div>
+
+<div style="clear: both;"></div>

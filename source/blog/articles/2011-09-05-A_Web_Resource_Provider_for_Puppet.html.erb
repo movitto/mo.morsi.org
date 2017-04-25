@@ -1,0 +1,263 @@
+---
+title: A Web Resource Provider for Puppet
+date: 2011-09-05
+---
+
+<p>
+As part of the <a href="http://aeolusproject.org">aeolus</a> <a href="http://www.puppetlabs.com">puppet</a> <a href="http://git.fedorahosted.org/git/?p=aeolus/configure.git">recipe</a> we are issuing a few web requests via curl to perform various operations against the aeolus APIs. The problem is this is that the results of these requests are somewhat tricky to parse as they require piping the curl output into grep or some other pattern matching mechanism in conjunction with analyzing the returned HTTP status code.
+</p>
+
+<p>
+To address this issue, we implemented a puppet resource type for generic web requests and a provider of that type utilizing the curl API to issue requests and analyze the results. To use it to query google for example, simply add the following to your puppet script:
+</p>
+
+<% code("ruby") do %>
+web_request{google:
+       get => "http://google.com",
+       follow => true
+}
+<% end %>
+
+<p>
+Or to invoke the aeolus API, a more complicated use case involving logging in / out, you can include the following in your puppet recipe:
+</p>
+
+<% code("ruby") do %>
+Web_request{
+  login       => { 'http_method' => 'post',
+                   'uri'         =>  'https://localhost/conductor/user_session',
+                   'user_session[login]'    => "$admin_user",
+                   'user_session[password]' => "$admin_password",
+                   'commit'                 => 'submit' },
+  logout      => { 'http_method' => 'post',
+                   'uri'         =>  'https://localhost/conductor/logout' }
+}
+
+web_request{"provider-foobar":
+  post =>  "https://localhost/conductor/admin/providers",
+  parameters  => { 'provider[name]'  => 'foobar',
+                   'provider[url]'   => 'http://localhost:3003/api',
+                   'provider[provider_type_codename]' => 'ec2' },
+  returns     => '200',
+  verify      => '.*Provider added.*',
+  follow      => true,
+  unless      => { 'http_method'     => 'get',
+                   'uri'             => 'https://localhost/conductor/admin/providers',
+                   'verify'          => '.*foobar.*' }
+}
+
+web_request{ "hwp1"
+  post        => "https://localhost/conductor/admin/hardware_profiles",
+  parameters  => {'hardware_profile[name]'  => "hwp1",
+                  'hardware_profile[memory_attributes][value]'       => "1024",
+                  'hardware_profile[cpu_attributes][value]'          => "1",
+                  'hardware_profile[storage_attributes][value]'      => "1",
+                  'hardware_profile[architecture_attributes][value]' => "x86_64",
+                  'hardware_profile[memory_attributes][name]'        => 'memory',
+                  'hardware_profile[memory_attributes][unit]'        => 'MB',
+                  'hardware_profile[cpu_attributes][name]'           => 'cpu',
+                  'hardware_profile[cpu_attributes][unit]'           => 'count',
+                  'hardware_profile[storage_attributes][name]'       => 'storage',
+                  'hardware_profile[storage_attributes][unit]'       => 'GB',
+                  'hardware_profile[architecture_attributes][name]'  => 'architecture',
+                  'hardware_profile[architecture_attributes][unit]'  => 'label',
+                  'commit' => 'Save'},
+  returns     => '200',
+  verify      => '.*Hardware profile added.*',
+  follow      => true,
+  unless      => { 'http_method'     => 'get',
+                   'uri'             => 'https://localhost/conductor/admin/hardware_profiles',
+                   'verify'          => ".*hwp1.*" },
+  require    => Service['aeolus-conductor']
+}
+<% end %>
+
+
+The actual resource type is fairly straightforward, it defines an API which web resources can be accessed in puppet. To use this resource type, place it in lib/puppet/type/web_request.rb  under the module which you want to install it in (or in the system wide modules dir)
+
+<% code("ruby") do %>
+Puppet::Type.newtype(:web_request) do
+    @doc = "Issue a request via the world wide web"
+
+    newparam :name
+
+    newproperty(:get) do
+      desc "Issue get request to the specified uri"
+    end 
+
+    newproperty(:post) do
+      desc "Issue get request to the specified uri"
+    end 
+
+    #newproperty(:delete)
+    #newproperty(:put)
+
+    newparam(:parameters) do
+      desc "Hash of parameters to include in the web request"
+    end 
+
+    newparam(:returns) do
+      desc "Expected http return codes of the request"
+      defaultto "200"
+    end 
+
+    newparam(:follow) do
+      desc "Boolean indicating if redirects should be followed"
+      newvalues(:true, :false)
+    end 
+
+    newparam(:verify) do
+      desc "String to verify as being part of the result"
+    end 
+
+    newparam(:login) do
+      desc "Login parameters to be used if a login is required before making the request"
+    end 
+
+    newparam(:logout) do
+      desc "Logout parameters to be used if a logout is requred after making the request"
+    end 
+
+    newparam(:unless) do
+      desc "Do not run request if the request specified here succeeds"
+    end 
+end
+<% end %>
+
+
+And finally here is the resource type provider which uses curl (provided in the rubygem 'curb') to implement the web resource interface. Place this under lib/puppet/provider/web_request/curl.rb in your module directory to use
+
+<% code("ruby") do %>
+require 'curb'
+require 'uuid'
+require 'fileutils'
+
+# Helper to invoke the web request w/ curl
+def web_request(method, uri, request_params, params = {})
+  raise Puppet::Error, "Must specify http method and uri" if method.nil? || uri.nil?
+
+  curl = Curl::Easy.new
+
+  if params.has_key?(:cookie)
+    curl.enable_cookies = true
+    curl.cookiefile = params[:cookie]
+    curl.cookiejar  = params[:cookie]
+  end
+
+  curl.follow_location = (params.has_key?(:follow) && params[:follow])
+
+  case(method)
+  when 'get'
+    url = uri
+    url += ";" + request_params.collect { |k,v| "#{k}=#{v}" }.join("&") unless request_params.nil?
+    curl.url = url
+    curl.http_get
+    return curl
+
+  when 'post'
+    cparams = []
+    request_params.each_pair { |k,v| cparams << Curl::PostField.content(k,v) } unless request_params.nil?
+    curl.url = uri
+    curl.http_post(cparams)
+    return curl
+
+  #when 'put'
+  #when 'delete'
+  end
+end
+
+# Helper to verify the response
+def verify_result(result, verify = {})
+  returns = (verify.has_key?(:returns) && !verify[:returns].nil?) ? verify[:returns] : "200"
+  returns = [returns] unless returns.is_a? Array
+  unless returns.include?(result.response_code.to_s)
+    raise Puppet::Error, "Invalid HTTP Return Code: #{result.response_code}, 
+                          was expecting one of #{returns.join(", ")}"
+  end
+
+  if verify.has_key?(:body) && !verify[:body].nil? && !(result.body_str =~ Regexp.new(verify[:body]))
+    raise Puppet::Error, "Expecting #{verify[:body]} in the result"
+  end
+end
+
+# Helper to process/parse web parameters
+def process_params(request_method, params, uri)
+  begin
+    # Set request method and generate a unique session key
+    session = "/tmp/#{UUID.new.generate}"
+
+    # Invoke a login request if necessary
+    if params[:login]
+      login_params = params[:login].reject { |k,v| ['http_method', 'uri'].include?(k) }
+      web_request(params[:login]['http_method'], params[:login]['uri'],
+                  login_params, :cookie => session, :follow => params[:follow]).close
+    end
+
+    # Check to see if we should actually run the request
+    skip_request = !params[:unless].nil?
+    if params[:unless]
+      result = web_request(params[:unless]['http_method'], params[:unless]['uri'],
+                           params[:unless]['parameters'],
+                           :cookie => session, :follow => params[:follow])
+      begin
+        verify_result(result,
+                      :returns => params[:unless]['returns'],
+                      :body    => params[:unless]['verify'])
+      rescue Puppet::Error => e
+        skip_request = false
+      end
+      result.close
+    end
+    return if skip_request
+
+    # Actually run the request and verify the result
+    uri = params[:name] if uri.nil?
+    result = web_request(request_method, uri, params[:parameters],
+                         :cookie => session, :follow => params[:follow])
+    verify_result(result,
+                  :returns => params[:returns],
+                  :body    => params[:verify])
+    result.close
+
+    # Invoke a logout request if necessary
+    if params[:logout]
+      logout_params = params[:login].reject { |k,v| ['http_method', 'uri'].include?(k) }
+      web_request(params[:logout]['http_method'], params[:logout]['uri'],
+                  logout_params, :cookie => session, :follow => params[:follow]).close
+    end
+
+  rescue Exception => e
+    raise Puppet::Error, "An exception was raised when invoking web request: #{e}"
+
+  ensure
+    FileUtils.rm_f(session) if params[:logout]
+  end
+end
+
+# Puppet provider definition
+Puppet::Type.type(:web_request).provide :curl do
+  desc "Use curl to access web resources"
+
+  def get
+    @uri
+  end
+
+  def post
+    @uri
+  end
+
+  def get=(uri)
+    @uri = uri
+    process_params('get', @resource, uri)
+  end
+
+  def post=(uri)
+    @uri = uri
+    process_params('post', @resource, uri)
+  end
+end
+<% end %>
+
+<p>
+Happy Puppeteering!
+</p>

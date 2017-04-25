@@ -1,0 +1,32 @@
+---
+title: Brother MFC 240c printer / scannner and Linux
+date: 2011-12-14
+---
+
+<%= image_tag "Brother_MFC-240C.jpg", :style => "float: left; margin-right: 25px;" %>In my quest to find more hardware that "just works" with Linux, I'm pleased to announce that I got the Brother MFC 240-C usb printer working without fuss w/ Fedora 9 and 10. Its all rather simple and straightforward (more detailed instructions can be found <a href="http://solutions.brother.com/linux/sol/printer/linux/cups_wrapper_install6.html">here</a>
+
+<ol>
+<li style="list-style-type: decimal;">Turn off the printer, connect the usb cable</li>
+<li style="list-style-type: decimal;">sudo yum install glibc.i386   # need this if your running x86_64</li>
+<li style="list-style-type: decimal;">sudo rpm -ivh http://solutions.brother.com/Library/sol/printer/linux/rpmfiles/lpr_others/mfc240clpr-1.0.1-1.i386.rpm</li>
+<li style="list-style-type: decimal;">sudo rpm -ivh http://solutions.brother.com/Library/sol/printer/linux/rpmfiles/cups_wrapper/mfc240ccupswrapper-1.0.1-1.i386.rpm</li>
+<li style="list-style-type: decimal;">Turn printer back on (if your printer was on all along, power cycle it, this is important)</li>
+</ol>
+
+<p>
+Installing the cups wrapper driver rpm should restart cups after which the printer should be ready to go! 
+</p>
+
+<p>
+OK I lied, you may need to disable selinux, i had it in permissive mode and the printer wasn't working until I disabled it completely. Also if you're running a 64 bit distro creating this symbolic link might help if its still not working: <b>sudo ln -s /usr/lib/cups/ /usr/lib64/cups</b>
+</p>
+
+<p>
+The scanner is equally as simple (detailed instructions can be found <a href="http://solutions.brother.com/linux/sol/printer/linux/sane_drivers.html">here</a>)
+</p>
+
+<ol>
+<li style="list-style-type: decimal;">sudo rpm -ivh http://solutions.brother.com/Library/sol/printer/linux/rpmfiles/sane_others/64bit/brscan2-0.2.4-0.x86_64.rpm</li>
+<li style="list-style-type: decimal;">sudo yum install xsane # or whatever other scanner software you want to use</li>
+<li style="list-style-type: decimal;">Scan Away!</li>
+</ol>

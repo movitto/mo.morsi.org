@@ -1,0 +1,42 @@
+---
+title: Polished to a Resilience
+date: 2015-08-09
+tags: projects, refs, polisher, sig315
+---
+
+<%= link_to image_tag("amazed.gif", :style => "float: left; margin-right: 15px; margin-left: 15px; margin-top: 30px; width: 25%"), image_path("amazed.gif") %>
+
+<div style="float: right; width: 60%; margin-right: 10px">Long time since the last post, it's been quite an interesting year! We all move forward as do the efforts on various fronts. Just a quick update today on two projects <a href="http://mo.morsi.org/blog/node/307">previously</a> <a href="http://mo.morsi.org/blog/node/387">discussed</a> as things ramp up after some downtime (look for more updates going into the fall / winter).
+
+<a href="https://github.com/ManageIQ/polisher">Polisher</a> has received alot of work in the domains of refactoring and new tooling. The codebase is more modular and robust, test coverage has been greatly expanded, and as far as the new utilities:
+
+<ul>
+<li><b><a href="https://asciinema.org/a/201u05rf7xqekq6x8u36gpox1">gem_mapper.rb</a></b>: Lists all gem / gemfile dependencies & the versions available downstream</li>
+<li><b><a href="https://asciinema.org/a/elhrl51n390ndnyx8ngmo8szy">missing_deps.rb</a></b>: Highlights dependencies missing downstream as well as any alternate versions available</li>
+<li><b><a href="https://asciinema.org/a/8kf3j1pbxjej2s3r5hes0mbat">gems2update.rb</a></b>: Cross references dependencies downstream w/ updates available upstream and recommends specific versions to update to. This facilitates a consistent update across dependencies which may impose different requirements on the same gems. If a unified update strategy cannot be deduced gems2update will highlight the conflicts.</li>
+</ul>
+
+<p>
+These can be seen in action via the <a href="http://asciinema.org">asciinema.org</a> screencasts referenced above.</div>
+</p>
+<div style="clear: both;"></div>
+
+<hr/>
+
+<p>
+<a href="https://github.com/movitto/resilience">Resilience</a>, our expiremental <a href="https://en.wikipedia.org/wiki/ReFS">REFS</a> parser, has also been polished. Various utilities previously written have been renamed, refactored, and expanded; and new tooling written to continue the analysis. Of particular notability are:
+</p>
+
+<ul>
+<li><b>fcomp.rb</b> - A file metadata comparison tool, that runs a binary diff on file metadata in the fs</li>
+<li><b>axe.rb</b> - The attribute extractor, pulls file specific metadata out of the refs filesystem and dumps it into a local file. Additional analysis will be of this metadata (in part)</li>
+<li><b>rarser.rb</b> - The complete filesystem parser / file extractor, this pulls files and directories off the image and dumps it into local files</li>
+</ul>
+
+<p>
+Also worthy to note are other ongoing efforts including <a href="https://lists.fedoraproject.org/pipermail/ruby-sig/2015-July/001800.html">updating ruby</a> to 2.3 in rawhide and <a href="https://lists.fedoraproject.org/pipermail/ruby-sig/2015-June/001787.html">updating rails</a> to 4.x in EPEL.
+</p>
+
+<p>
+Finally, the <a href="http://sig315.org">SIG</a> has been going through (another) transitionary period. While membership is still growing there are many logistical matters currently up in the air that need to be resolved. Look for updates on that front as well as many others in the near future.
+</p>

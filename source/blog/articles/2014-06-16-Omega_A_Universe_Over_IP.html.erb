@@ -1,0 +1,59 @@
+---
+title: Omega - A Universe Over IP
+date: 2014-06-16
+tags: omega, simulator
+---
+
+<%= image_tag("omega-large-logo_2.png", :style => "float: right;") %>
+<div style="clear: both"></div>
+
+<p>
+Anyone following my <a href="http://github.com/movitto">github repo</a> over the last few years may have noticed alot of activity around the <a href="http://github.com/movitto/omega">Omega</a> Project for which a post about is long overdue. <a href="http://megaverse.info">Omega</a> is a Universe Simulator that serves requests over the <a href="http://en.wikipedia.org/wiki/JSON-RPC">JSON-RPC</a> protocol, enabling the widest variety of clients implemented in any language, running on any platform, to access and manipulate the universe over any transport (TCP/IP, HTTP, Websockets, AMQP, and more).
+</p>
+
+<p>
+Omega consists of several subsystems implementing a variety of functionally from 3D location tracking, to user management and access control, to querying and manipulating hierarchies of cosmic entities and player-controlled ships and stations. Omega provides a complete scriptable interface through which an admin can setup and customize sequences of server side events and workflows as well as access high-level simulation statistics and user-ranking mechanisms.
+</p>
+
+<p>
+The Omega Project is not only just that though, also included are a slew of utility binaries to setup and configure a custom universe, many examples of tailored environments, a full featured client <a href="http://en.wikipedia.org/wiki/Domain-specific_language">DSL</a>, as well as a web frontend based on <a href="http://middlemanapp.com/">middleman</a> and <a href="http://threejs.org/">three.js</a>. A hosted demo instance is available at <a href="http://megaverse.net">megaverse.net</a>
+</p>
+
+<p>
+<a href="https://raw.github.com/wiki/movitto/omega/screenshots/007-system3a.png"><img src="https://raw.github.com/wiki/movitto/omega/screenshots/007-system3a.png" style="float: left; width: 45%; padding-right: 10px;"/></a><a href="https://raw.github.com/wiki/movitto/omega/screenshots/015-ship-dock.png"><img src="https://raw.github.com/wiki/movitto/omega/screenshots/015-ship-dock.png" style="float: left; width: 45%;"/></a>
+</p>
+
+<div style="clear: both;"></div>
+
+<p>
+
+<a href="https://raw.github.com/wiki/movitto/omega/screenshots/013-ship-movement.png">
+  <img src="https://raw.github.com/wiki/movitto/omega/screenshots/013-ship-movement.png" style="float: left; width: 45%; padding-right: 10px;"/>
+</a>
+<a href="https://raw.github.com/wiki/movitto/omega/screenshots/018-account-info.png">
+  <img src="https://raw.github.com/wiki/movitto/omega/screenshots/018-account-info.png" style="float: left; width: 45%;"/>
+</a>
+
+<div style="clear: both;"></div>
+
+<br/>
+
+<p>
+Omega has been a labour of love over the last several years, it's gone under several disparate revisions, having been started shortly after I finished grad school in '08 and slowly being improved since. The structure and runtime is finally stable enough to promote / share with others to hopefully grow the community. Credit goes to many various people who've been helping along the way, from Nolan and Nico who have been playing around with getting it up an running on different platforms, reporting various issues, and submitting various patches, to Nitesh who is working on packaging up the project with dependencies, to Mark/Ken/Dan from <a href="http://sig315.org">the local hackerspace</a> who helped organize / run the first Omega meetup a few months back, to the many others who I have collaborated with and tossed around ideas with along the road.
+</p>
+
+<p>
+As far as what's next I aim to plan keep hacking away at the repo, wrapping up loose ends and starting to implement the <a href="https://github.com/movitto/omega/wiki/TODO">next round</a> of features on the list. As it stands Omega currently ships with a <a href="https://github.com/movitto/omega/tree/master/examples/distributed">distributed</a> example in which two separate nodes interact with each other, permitting a ship to jump across a distributed universe. I am to continue expanding this, hopefully setting up a network of these simulations at some point in the near future. Also various other clients (such as Android and native desktop clients), integration with the <a href="http://www.oculusvr.com/">Occulus Rift</a>, and more is on the backlog.
+</p>
+
+<p>
+If you are interested in following progress make sure to join the newly created <a href="https://groups.google.com/forum/#!forum/megaverse">mailing list</a> (blog coming soon). The project is still in its early / alpha stages, so contributors are more than welcome. There is plenty TODO from coding, testing, documentation, marketing / promotion, and more. There is something for anyone! If you're interested in the project or just want to find out more info feel free to drop me a line anytime.
+</p>
+
+<p>
+Other than that, be sure to check the repo often for updates as there's alot more coming!
+</p>
+
+<p>
+Happy Star-Travelling!
+</p>

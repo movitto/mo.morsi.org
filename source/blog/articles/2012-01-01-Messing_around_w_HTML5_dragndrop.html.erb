@@ -1,0 +1,104 @@
+---
+title: Messing around w/ HTML5 - drag-n-drop
+date: 2012-01-01
+---
+
+<p>
+In my last html5 <a href="http://mo.morsi.org/blog/node/352">blog post</a> we explored using the canvas to recreate a simple version of pong. This time around we'll be using the drag-and-drop features of HTML5 for a simple example. Note I'm pulling in the <a href="http://jqueryui.com/">JQuery UI</a> library to take care of alot of the details and provide a easy-to-use interface to use drag-and-drop.
+</p>
+
+<p>
+In this example, we have a list of images which we'd like to pull into a common area. The thing is, the original list should be preserved, once dragged-in, an image should not disappear from its original location.
+</p>
+
+<p>
+This is accomplished by using jquery to set the images in the list to being draggable (this registers the necessary event handlers), and to make the common area droppable, eg able to receive draggable objects. JQuery allows us to set the 'helper' attribute, which defines the element being dragged around, to the predefined 'clone' value which makes a copy of the original element. From there we expand the container div to accept only the elements we want to drag in, and override the 'drop' method to set various properties allowing us to position and style the dropped element any way we would like.
+</p>
+
+<p>
+All in all the effect is the following:
+</p>
+
+<div id="jquery_drag_drop_example_container" style="width: 300px; height: 300px; background: #C0C0C0; float:left;">
+</div>
+
+<div style="background: #FFFF99; float:left; width: 20%; margin-left: 10px;">
+<ul style="list-style-type: none; list-style-position: inside;">
+  <li><%= image_tag "jquery_drap_drop_example_0.png", :class => "jquery_drag_drop_example_img" %></li>
+  <li><%= image_tag "jquery_drap_drop_example_1.png", :class => "jquery_drag_drop_example_img" %></li>
+  <li><%= image_tag "jquery_drap_drop_example_2.png", :class => "jquery_drag_drop_example_img" %></li>
+  <li><%= image_tag "jquery_drap_drop_example_3.png", :class => "jquery_drag_drop_example_img" %></li>
+  <li><%= image_tag "jquery_drap_drop_example_4.png", :class => "jquery_drag_drop_example_img" %></li>
+</ul>
+</div>
+
+<div style="clear: both;"></div>
+
+<script type="text/javascript">
+$(function(){
+  $('.jquery_drag_drop_example_img').draggable({
+    helper: 'clone',
+  }); 
+  $('#jquery_drag_drop_example_container').droppable({
+    accept: '.jquery_drag_drop_example_img',
+    drop: function(event, ui){
+      var newitem = $(ui.draggable).clone();
+      $(this).append(newitem);
+      $(newitem).addClass("jquery_drag_drop_example_img_clone");
+      $(newitem).removeClass("ui-draggable jquery_drag_drop_example_img");
+      $(newitem).draggable({containment: 'parent'});
+      $(newitem).css('position', 'absolute');
+      $(newitem).css('top', ui.position.top ); 
+      $(newitem).css('left', ui.position.left);
+      //alert(event.dataTransfer.getData('text'));
+    }   
+  }); 
+});
+</script>
+
+
+<p>
+And the source producing this:
+</p>
+
+<% code("html") do %>
+<div id="jquery_drag_drop_example_container"
+     style="width: 300px; height: 300px; background: #C0C0C0; float:left;">
+</div>
+<div style="background: #FFFF99; float:left; width: 20%; margin-left: 10px;">
+<ul style="list-style-type: none; list-style-position: inside;">
+  <li><img class="jquery_drag_drop_example_img" src="example_0.png" /></li>
+  <li><img class="jquery_drag_drop_example_img" src="example_1.png" /></li>
+  <li><img class="jquery_drag_drop_example_img" src="example_2.png" /></li>
+  <li><img class="jquery_drag_drop_example_img" src="example_3.png" /></li>
+  <li><img class="jquery_drag_drop_example_img" src="example_4.png" /></li>
+</ul>
+</div>
+<div style="clear: both;"></div>
+<% end %>
+
+<% code("javascript") do %>
+<script type="text/javascript">
+$(function(){
+  $('.jquery_drag_drop_example_img').draggable({
+    helper: 'clone',
+  }); 
+  $('#jquery_drag_drop_example_container').droppable({
+    accept: '.jquery_drag_drop_example_img',
+    drop: function(event, ui){
+      var newitem = $(ui.draggable).clone();
+      $(this).append(newitem);
+      $(newitem).addClass("jquery_drag_drop_example_img_clone");
+      $(newitem).removeClass("ui-draggable jquery_drag_drop_example_img");
+      $(newitem).draggable({containment: 'parent'});
+      $(newitem).css('position', 'absolute');
+      $(newitem).css('top', ui.position.top ); 
+      $(newitem).css('left', ui.position.left);
+      //alert(event.dataTransfer.getData('text'));
+    }   
+  }); 
+});
+</script>
+<% end %>
+
+Thats it until next time. Hope everyone enjoys the holidays!

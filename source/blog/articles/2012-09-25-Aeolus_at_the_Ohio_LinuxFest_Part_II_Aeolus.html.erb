@@ -1,0 +1,255 @@
+---
+title: Aeolus at the Ohio LinuxFest - Part II Aeolus
+date: 2012-09-25
+---
+
+<p>
+To setup a few cloud providers to use against Aeolus, see my <a href="http://mo.morsi.org/blog/node/372">first</a> blog post in this series.
+</p>
+
+<h2>deltacloud</h2>
+
+<p>
+To install, the core Aeolus component, <a href="http://deltacloud.apache.org/drivers.html">deltacloud</a> and the drivers for oVirt (RHEV) and OpenStack:
+</p>
+
+<% code("ruby") do %>
+  # yum install deltacloud-core deltacloud-core-rhevm deltacloud-core-openstack
+<% end %>
+
+<p>
+Deltacloud comes with a RESTful server, a command line client, and various programatic interfaces including C and Ruby. We'll start a few instances of deltacloud to serve requests to the various providers and connect to them via IRB / Ruby. A single deltacloud server can dispatch requests to as many cloud providers as desired, provided the correct HTTP headers are set such that deltacloud can resolve the remote provider entry point. But for this demo, to make it especially clear what is going on, two deltacloud instances are used:
+</p>
+
+<% code("ruby") do %>
+  # API_PROVIDER='https://ovirt:8443/api'  /usr/bin/ruby /usr/bin/deltacloudd -i rhevm -e production --port 3004 --host localhost -u nobody -g nobody
+  # API_PROVIDER='https://openstack:5000/v2.0'  /usr/bin/ruby /usr/bin/deltacloudd -i openstack  -e production --port 3005 --host localhost -u nobody -g nobody
+<% end %>
+
+<p>
+Pop open an irb session and connect oVirt
+</p>
+
+<% code("ruby") do %>
+  $ irb
+  > require 'deltacloud'
+  > c = DeltaCloud.new('admin@internal', 'cloudpass', 'http://localhost:3004/api')
+  => <DeltaCloud::API:0x00000002d75968 @password="cloudpass", @username="admin@internal",
+                                        @api_uri=#<URI::HTTP:0x00000002d75580 URL:http://localhost:3004/api>,
+                                        @entry_points={:instances=>"http://localhost:3004/api/instances",
+                                                       :images=>"http://localhost:3004/api/images",
+                                                       :drivers=>"http://localhost:3004/api/drivers",
+                                                       :instance_states=>"http://localhost:3004/api/instance_states",
+                                                       :storage_volumes=>"http://localhost:3004/api/storage_volumes",
+                                                       :realms=>"http://localhost:3004/api/realms",
+                                                       :hardware_profiles=>"http://localhost:3004/api/hardware_profiles"},
+                                        @features={:instances=>[:user_name, :user_data]},
+                                        @verbose=false, @driver_name="rhevm", @api_version="1.0.0">
+
+  > c.instances.collect { |i| [i.id, i.name] }
+  => [["8b347be3-0a76-4c84-aa79-c017557540f5", "demo6"],        ["894fb094-c75d-49a8-b49d-5523346b46a3", "demo7"],
+      ["98511559-46a3-4eb2-aba2-4c81c4e0d5b5", "i-1347974040"], ["29c4d6ae-87ab-46cd-8424-af05b96b1d91", "i-1348008963"],
+      ["c1844032-45d4-4b17-9405-224b4942ace7", "i-1348425727"], ["12f8c82e-2837-49e0-8d41-745aa208021a", "i-1348516821"],
+      ["9f3e115f-e097-4fdc-bfa3-5d634141c38a", "i-1348586396"], ["76b5bc43-6bc5-4c06-a92a-c86595bfc303", "inst1"]]
+
+  > c.images.collect { |i| [i.id, i.name] }
+  => [["00000000-0000-0000-0000-000000000000", "Blank"], ["d0a8df2e-1563-470e-bfd7-8384a400380f", "e3280dab-e719-4e6e-b954-55578acfe4b7"]]
+
+  > i = c.create_instance("00000000-0000-0000-0000-000000000000")
+  => <DeltaCloud::API::Stateful::Instance:0x000000025ddb60 @base_name="instance", @client=<DeltaCloud::API:0x00000002d75968 ...>,
+                                                            @url="http://localhost:3004/api/instances/d637ee52-787d-48de-a6c4-a92b854677b4",
+                                                            @id="d637ee52-787d-48de-a6c4-a92b854677b4",
+                                                            @objects=[{:method_name=>"stopped?", :type=>:state, :state=>"STOPPED"},
+                                                                      {:method_name=>"running?", :type=>:state, :state=>"RUNNING"},
+                                                                      {:method_name=>"pending?", :type=>:state, :state=>"PENDING"},
+                                                                      {:method_name=>"shutting_down?", :type=>:state, :state=>"SHUTTING_DOWN"},
+                                                                      {:type=>:text, :method_name=>"name", :value=>"i-1348597714"},
+                                                                      {:type=>:text, :method_name=>"owner_id", :value=>"admin@internal"},
+                                                                      {:type=>:link, :method_name=>"image", :id=>"00000000-0000-0000-0000-000000000000"},
+                                                                      {:type=>:text, :method_name=>"image_id", :value=>"00000000-0000-0000-0000-000000000000"},
+                                                                      {:type=>:link, :method_name=>"realm", :id=>"99408929-82cf-4dc7-a532-9d998063fa95"},
+                                                                      {:type=>:text, :method_name=>"realm_id", :value=>"99408929-82cf-4dc7-a532-9d998063fa95"},
+                                                                      {:type=>:text, :method_name=>"state", :value=>"STOPPED"},
+                                                                      {:type=>:link, :method_name=>"hardware_profile", :id=>"DESKTOP"},
+                                                                      {:type=>:text, :method_name=>"hardware_profile_id", :value=>"DESKTOP"},
+                                                                      {:type=>:action_link, :method_name=>"start!",
+                                                                       :id=>"d637ee52-787d-48de-a6c4-a92b854677b4",
+                                                                       :href=>"http://localhost:3004/api/instances/d637ee52-787d-48de-a6c4-a92b854677b4/start",
+                                                                       :rel=>"start", :method=>"post"},
+                                                                      {:type=>:action_link, :method_name=>"destroy!",
+                                                                       :id=>"d637ee52-787d-48de-a6c4-a92b854677b4",
+                                                                       :href=>"http://localhost:3004/api/instances/d637ee52-787d-48de-a6c4-a92b854677b4",
+                                                                       :rel=>"destroy", :method=>"delete"},
+                                                                      {:type=>:action_link, :method_name=>"create_image!",
+                                                                       :id=>"d637ee52-787d-48de-a6c4-a92b854677b4",
+                                                                       :href=>"http://localhost:3004/api/create_image;instance_id=d637ee52-787d-48de-a6c4-a92b854677b4",
+                                                                       :rel=>"create_image", :method=>"post"},
+                                                                      {:type=>:collection, :method_name=>"public_addresses",
+                                                                       :values=>[{:address=>"127.0.0.1", :type=>"vnc"}]},
+                                                                                 {:type=>:collection, :method_name=>"private_addresses", :values=>[]},
+                                                                                 {:type=>:text, :method_name=>"storage_volumes", :value=>""}],
+                                                            @action_urls=["http://localhost:3004/api/instances/d637ee52-787d-48de-a6c4-a92b854677b4/start",
+                                                                          "http://localhost:3004/api/instances/d637ee52-787d-48de-a6c4-a92b854677b4",
+                                                                          "http://localhost:3004/api/create_image;instance_id=d637ee52-787d-48de-a6c4-a92b854677b4"],
+                                                            @actions=[["start", "http://localhost:3004/api/instances/d637ee52-787d-48de-a6c4-a92b854677b4/start"],
+                                                                      ["destroy", "http://localhost:3004/api/instances/d637ee52-787d-48de-a6c4-a92b854677b4"],
+                                                                      ["create_image", "http://localhost:3004/api/create_image;instance_id=d637ee52-787d-48de-a6c4-a92b854677b4"]],
+                                                            @state="STOPPED">
+
+  > i.actions
+  => [["start",        "http://localhost:3004/api/instances/d637ee52-787d-48de-a6c4-a92b854677b4/start"],
+      ["destroy",      "http://localhost:3004/api/instances/d637ee52-787d-48de-a6c4-a92b854677b4"],
+      ["create_image", "http://localhost:3004/api/create_image;instance_id=d637ee52-787d-48de-a6c4-a92b854677b4"]]
+
+  > i.state
+  => "STOPPED"
+
+  > i.start!
+  > i.state
+  => "PENDING"
+
+  # and after a little while
+  > i.state
+  => "RUNNING"
+<% end %>
+
+Now you can use the same API to connect to and control openstack:
+<% code("ruby") do %>
+  $ irb
+  > require 'deltacloud'
+
+  > c = DeltaCloud.new('admin+admin', 'cloudpass', 'http://localhost:3005/api')
+  => <DeltaCloud::API:0x0000000149fc90 @password="cloudpass", @username="admin+admin",
+                                        @api_uri=#<URI::HTTP:0x000000014a7530 URL:http://localhost:3005/api>,
+                                        @entry_points={:instances=>"http://localhost:3005/api/instances",
+                                                       :buckets=>"http://localhost:3005/api/buckets",
+                                                       :images=>"http://localhost:3005/api/images",
+                                                       :drivers=>"http://localhost:3005/api/drivers",
+                                                       :instance_states=>"http://localhost:3005/api/instance_states",
+                                                       :realms=>"http://localhost:3005/api/realms",
+                                                       :hardware_profiles=>"http://localhost:3005/api/hardware_profiles"},
+                                        @features={:instances=>[:user_name, :user_files, :authentication_password]},
+                                        @verbose=false, @driver_name="openstack", @api_version="1.0.0">
+
+  > c.instances.collect { |i| [i.id, i.name] }
+  => [["f6915123-c3de-4a3c-bb0e-e88143ea838f", "2012-09-25 11:32:43 -0400"]]
+
+  > c.images.collect { |i| [i.id, i.name] }
+  => [["a4180f79-c4bf-4d61-a801-b5990b590fb0", "f16-jeos"]]
+
+  > i = c.create_instance('a4180f79-c4bf-4d61-a801-b5990b590fb0')
+  => <DeltaCloud::API::Stateful::Instance:0x000000014fe1a0 @base_name="instance", @client=#<DeltaCloud::API:0x0000000149fc90 ...>,
+                                                            @url="http://localhost:3005/api/instances/c32688e4-eeb0-468f-a08f-cdf047d36b45",
+                                                            @id="c32688e4-eeb0-468f-a08f-cdf047d36b45",
+                                                            @objects=[{:method_name=>"stopped?", :type=>:state, :state=>"STOPPED"},
+                                                                      {:method_name=>"running?", :type=>:state, :state=>"RUNNING"},
+                                                                      {:method_name=>"pending?", :type=>:state, :state=>"PENDING"},
+                                                                      {:method_name=>"shutting_down?", :type=>:state, :state=>"SHUTTING_DOWN"},
+                                                                      {:type=>:text, :method_name=>"name", :value=>"2012-09-25 14:39:31 -0400"},
+                                                                      {:type=>:text, :method_name=>"owner_id", :value=>"admin"},
+                                                                      {:type=>:link, :method_name=>"image", :id=>"a4180f79-c4bf-4d61-a801-b5990b590fb0"},
+                                                                      {:type=>:text, :method_name=>"image_id", :value=>"a4180f79-c4bf-4d61-a801-b5990b590fb0"},
+                                                                      {:type=>:link, :method_name=>"realm", :id=>"default"},
+                                                                      {:type=>:text, :method_name=>"realm_id", :value=>"default"},
+                                                                      {:type=>:text, :method_name=>"state", :value=>"PENDING"},
+                                                                      {:type=>:link, :method_name=>"hardware_profile", :id=>"1"},
+                                                                      {:type=>:text, :method_name=>"hardware_profile_id", :value=>"1"},
+                                                                      {:type=>:collection, :method_name=>"public_addresses", :values=>[]},
+                                                                      {:type=>:collection, :method_name=>"private_addresses", :values=>[]},
+                                                                      {:type=>:text, :method_name=>"storage_volumes", :value=>""},
+                                                                      {:type=>:collection, :method_name=>"authentication", :values=>{:username=>"removed"}}],
+                                                            @action_urls=[],
+                                                            @actions=[],
+                                                            @state="PENDING">
+  irb(main):006:0> i.state
+  => "PENDING"
+
+  > c.instances.collect { |i| [i.id, i.name] }
+  => [["c32688e4-eeb0-468f-a08f-cdf047d36b45", "2012-09-25 14:39:31 -0400"],
+      ["f6915123-c3de-4a3c-bb0e-e88143ea838f", "2012-09-25 11:32:43 -0400"]]
+
+  # openstack instances autostart
+  > c.instances.first.state
+  => "RUNNING"
+<% end %>
+
+
+The same API can be used to control <a href="http://aws.amazon.com/">ec2</a>, <a href="http://www.vmware.com/products/datacenter-virtualization/vsphere/index.html">vsphere</a>, <a href="http://www.gogrid.com/">gogrid</a> and many others.
+
+
+<h2>imagefactory</h2>
+To install imagefactory, the core component used to build and push cloud images, simply:
+
+<% code do %>
+  # yum install imagefactory
+<% end %>
+
+You may want to checkout / build the latest imagefactory from source to get all the latest updates:
+
+<% code do %>
+  # yum install git
+  $ git clone git://github.com/aeolusproject/imagefactory.git
+  $ cd imagefactory
+  $ make rpms
+  $ cd imagefactory-plugins
+  $ make rpms
+  $ rpm -ivh <imagefactory.rpm> <imagefactory-plugins.rpm>
+<% end %>
+
+The latest imagefactory also leverages the oVirt SDK to build images:
+
+<% code do %>
+  $ rpmbuild --rebuild http://repos.fedorapeople.org/repos/aeolus/imagefactory/testing/latest_bindings/ovirt-engine-sdk-3.1.0.3-1.fc14.src.rpm
+  $ rpm -ivh <ovirt-engine-sdk.rpm>
+<% end %>
+
+To push images to oVirt, mount the NFS export domain you had previous setup.
+
+<% code("ruby") do %>
+  $ mount ovirt:/ext/ovirt31export /mnt/ovirt
+<% end %>
+
+Two configuration files are read in by imagefactory, one describing the provider which to build images for and the other the credentials to use to push an image to it. For example the rhev provider json & credentials xml files would look like:
+
+<% code do %>
+  $ cat rhevm.json 
+      {"nfs-dir": "/mnt/ovirt", "nfs-path": "/ext/ovirt31export",
+       "nfs-host": "ovirt", "cluster": "_any_",
+       "api-url": "http://ovirt/api", "timeout": 1800 }
+
+  $ cat rhevm.xml 
+      <provider_credentials><rhevm_credentials><username>admin@internal</username><password>cloudpass</password></rhevm_credentials></provider_credentials>
+<% end %>
+
+And the openstack config files:
+<% code do %>
+  $ cat openstack.json 
+    {"glance-host": "openstack", "glance-port": 9292 }
+
+  $ cat openstack.xml 
+    <provider_credentials><openstack_credentials><username>admin</username><tenant>admin</tenant><password>cloudpass</password><strategy>keystone</strategy><auth_url>http://openstack:5000/v2.0</auth_url></openstack_credentials></provider_credentials>
+<% end %>
+
+Setup a template containing the description of the image you would like to build. You may download many useful ones from the <a href="https://github.com/aeolus-incubator/templates">Aeolus Templates Repo</a>. There are ones to setup <a href="https://github.com/aeolus-incubator/templates/blob/master/web_servers/Apache/fedora-16/apache_httpd_f16.xml">httpd</a>, <a href="https://github.com/aeolus-incubator/templates/tree/master/db_servers/MySQL/fedora-16">mysqld</a> and more.
+
+Import the template into imagefactory like so:
+<% code do %>
+  $ sudo imagefactory base_image template.xml
+<% end %>
+
+Build the image for a particular cloud provider like so (target image is from last step):
+<% code do %>
+  $ sudo imagefactory --debug target_image --id b55b42f1-aa2d-418f-b635-252e5f343209 rhevm
+<% end %>
+
+Push the image to the specified provider like so (image id from last step):
+<% code do %>
+  $ sudo imagefactory --debug provider_image --id "2492c8c2-ada4-4325-a783-da3c37871ba7" --target rhevm rhevm.json rhevm.xml
+<% end %>
+
+
+<h2>other components</h2>
+
+Aeolus consists of many components which can be used individually or together for a seamless cross-cloud experience. Imagefactory uses one of the most popular components <a href="https://github.com/clalancette/oz">Oz</a> behind the scenes, to install a bare-bones operating system with Just-Enough-OS (JEOS) to bootstrap further installation mechanisms using the tooling native to the local environment. This allows us to generate minimalistic cloud images that are as portable as possible. The <a href="https://github.com/aeolusproject/audrey">Audrey</a> config server is used to orchestrate cross-cloud services and configurations and I have <a href="http://mo.morsi.org/blog/taxonomy/term/86">previously</a> <a href="http://mo.morsi.org/blog/node/350">posted</a> about <a href="https://github.com/movitto/snap">snap</a> which uses native tooling to take portable snapshots of cloud instances. Ontop of everything the Conductor RESTful API and Web application is used to manage all this, and configure various components to work with each other with users and an extensive permission schema. Infront of this is a the aeolus-cli which provides a rich command line cloud management interface.
+
+Stay tuned for my next post in the series which will be on the Conductor Web UI and aeolus-cli.

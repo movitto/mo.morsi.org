@@ -1,0 +1,242 @@
+---
+title: ReFS Part II - May the Resilience Be With You
+date: 2014-11-02
+tags: refs, filesystems
+---
+
+Not too long after the last <a href="http://mo.morsi.org/blog/node/386">post</a>, it became aparent that the disk I was analyzing wasn't a valid filesystem. Possibly due to a transfer error, several bytes were missing resulting in disk structures that weren't aligned with the addresses where they should've resided.
+
+After generating a new <a href="http://morsi.org/files/refs.img">image</a> I was able to make alot of headway on the analysis. To start off a valid metadata page address became immediately aparent on page <b>0x1e</b>. Recall that page 0x1e is the first metadata page residing at a fixed / known location after the start of the partition:
+
+<pre>
+  bytes 0xA0-A7: 90 19 00 00 00 00 00 00
+        0xA8-AF: 67 31 01 00 00 00 00 00
+</pre>
+
+Pages 0x1990 and 0x13167 are valid metadata pages containing similar contents. Most likely one is a backup of the other. Assuming the first record is the primary copy (0x1990).
+
+<b>Note</b> this address appears at byte 0xA0 on page 0x1E. Byte 0xA0 is referenced earlier on in the page:
+
+<pre>
+  byte 0x50: A0 00 00 00  02 00 00 00  B0 00 00 00  18 00 00 00
+</pre>
+
+So it is possible that this page address is not stored at a static location but at a offset referenced earlier in the page.
+
+<h2>The System Table</h2>
+The word 6 value (previously refered to as <b>virtual page number</b>) of page 0x1990 is '0' indicating this is a critical table. Lets call this the <b>System Table</b> for the reasons found below.
+
+This page contains 6 rows of 24-byte entries, each containing a valid metadata partition, some flags, and a 16-byte unique id/checksum of some sort.
+
+Early on in the page the table header resides:
+
+<pre>
+  byte 0x58: 06 00 00 00   98 00 00 00
+             B0 00 00 00   C8 00 00 00
+             E0 00 00 00   F8 00 00 00
+             10 01 00 00
+</pre>
+
+06 is the number of records and each dword after this contains the offset from the very start of the page to each table record:
+
+<pre>
+  table offsets: 98, B0, C8, E0, F8, 110
+</pre>
+
+Each table record has a page id, flags, and some other unique qword of some sort (perhaps an object id or checksum),
+
+<pre>
+  page ids:      corresponding virtual page id values:
+    2c2               2
+     22               E
+     28               D
+     29               C
+    2c8               1
+    2c5               3
+</pre>
+
+These correspond to the latest revisions of the critical system pages highlighted in previous analysis.
+
+
+<h2>Directories</h2>
+We've previously established Virtual Page 0x2 contains the object table and upon furthur examination of the keys (object id's) and values (page id's)' we see object <b>0x0000000000006000000000000000000</b> is the root directory (this is consistent across images).
+
+The format of a directory page varies depending its type. Like all metadata-pages the first 0x30 bytes contains the page metadata. This is followed by a attribute of unknown purpose (seems to be related to the page's contents, perhaps a generic bucket / container descriptor). 
+
+This is followed by the table header attribute, 0x20 bytes in length.
+
+This attribute contains:
+<ul>
+<li>bytes 0x4-0x7: the total table length of the table. <b>Note</b> this length includes this attribute so 0x20 should be subtracted before parsing</li>
+<li>0xC-0xD: flags seems to indicate the intent of the table</li>
+</ul>
+
+Table Type Flags:
+<ul>
+<li>00 02 - directory list</li>
+<li>01 03 - b+ tree</li>
+</ul>
+
+Table records here work like any other table consisting of
+<ul>
+<li>the length of the record, (4 bytes)</li>
+<li>offset to the key, (2 bytes)</li>
+<li>length of the key, (2 bytes)</li>
+<li>flags, (2 bytes)</li>
+<li>offset to the value,  (2 bytes)</li>
+<li>length of the value (2 bytes)</li>
+<li>padding (2 bytes)</li>
+</ul>
+
+The semantics of the record values differ depending on the table type.
+
+Directory lists contain:
+<ul>
+<li>keys: file names</li>
+<li>values: file tables containing file timestamps and data pages</li>
+</ul>
+
+B+ trees contain:
+<ul>
+<li>keys: b+ node id (file names)</li>
+<li>values: directory pages</li>
+</ul>
+
+When iterating over directory list records, the record flags seem to indicate record context.  A value of '4' stored in the record flags seems to indicate a historical / old entry, for example an old directory name before it was renamed (eg 'New Folder'). The files / directories we are interested in contain '0' or '8' in the record flags.
+
+The intent of each matching directory list record can be furthur deduced by the first 4 bytes in its key which may be:
+
+<pre>
+  0x00000010 - directory information
+  0x00020030 - subdirectory - name will be the rest of the key
+  0x00010030 - file - name will be the rest of the key
+  0x80000020 - ???
+</pre>
+
+In the case of subdirectories, the first 16 bytes of the record value will contain the directory object id. The object table can be used to look this up to access its page.
+
+For B+ trees the record values will contain the ids of pages containing directory records (and possibly more B+ levels though I didn't verify this). Full filesystem traversal can be implemented by iterating over the root tree, subdirs, and file records.
+
+
+<h2>File Tables</h2>
+File metadata is stored as a table embedded directly into the directory table which the file is under.
+
+Each file table always starts with an attribute 0xA8 length containing the file <b>timestamps</b> (4 qwords starting at byte 0x28 of this attribute) & file length (starting at byte 0x68 of this attribute).
+
+Note the actual units of time which the timestamps represent are still unknown.
+
+After this there exists several related metadata attributes.
+
+The second attribute (starting at byte 0xA8 of the file table):
+
+<pre>
+  20 00 00 00 # length of this record
+  A0 01 00 00 # length of this record + next record
+  D4 00 00 00 # amount of padding after next record
+  00 02 00 00 # table type / flags ?
+  74 02 00 00 # next 'insert' address ?
+  01 00 00 00 # number of records ?
+  78 02 00 00 # offset to padding
+  00 00 00 00
+</pre>
+
+The next record looks like a standard table record as we've seen before:
+
+<pre>
+  80 01 00 00 # length of this record, note this equals 2nd dword value of last record minus 0x20
+  10 00 0E 00 # offset to key / key length
+  08 00 20 00 # flags / offset to value
+  60 01 00 00 # value length / padding
+</pre>
+
+The key of this record starts at 0x10 of this attribute and is 0x0E length:
+
+<pre>
+  60 01 00 00
+  00 00 00 00
+  80 00 00 00
+  00 00 00
+</pre>
+
+The value starts at attribute offset 0x20 and is of length 0x160. This value contains yet another embeded attribute:
+
+<pre>
+  88 00 00 00 # length of attribute
+  28 00 01 00
+  01 00 00 00
+  20 01 00 00
+  20 01 00 00
+  02 00 00 00
+  00 00 00 00
+  00 00 00 00
+  00 00 00 00
+  00 00 00 00
+  01 00 00 00
+  00 00 00 00
+  00 00 00 00
+  00 00 03 00
+  00 00 00 00
+  2C 05 02 00 # length of the file
+  00 00 00 00
+  2C 05 02 00 # length of the file
+  00 00 00 00
+  # 0's for the rest of this attribute
+</pre>
+
+The file length is represented twice in this attribute (perhaps allocated & actual lengths)
+
+The next attribute is as follows:
+
+<pre>
+  20 00 00 00 # length of attribute
+  50 00 00 00 # length of this attribute + length of next attribute
+  84 00 00 00 # amount of padding after this attribute
+  00 02 00 00 # ?
+  D4 00 00 00 # next insert address
+  01 00 00 00 # ?
+  D8 00 00 00 # offset to padding
+  00 00 00 00
+</pre>
+
+The format of this attribute looks similar to the second in the file (see above) and seems to contain information about the next record(s). Perhaps related to the 'bucket'  concept discussed <a href="http://www.williballenthin.com/forensics/refs/memory/index.html">here</a>
+
+At first glance the next attribute looks like another standard record but the key and value offsets are the same. This attribute contains the starting page # of the file content
+
+<pre>
+ 30 00 00 00 # length of this record
+ 10 00 10 00 # key offset / length ?
+ 00 00 10 00 # flags / value offset ?
+ 20 00 00 00 # value length / padding ? 
+ 00 00 00 00
+ 00 00 00 00
+ 0C 00 00 00
+ 00 00 00 00
+ D8 01 00 00 # starting page of the file
+ 00 00 00 00
+ 00 00 00 08
+ 00 00 00 00 
+</pre>
+
+For larger files there are more records following this attribute, each of 0x30 length, w/ the same record header. Many of the values contain the pages containing the file contents, though only some have the same format as the one above.
+
+Other records may correspond to compressed / sparse attributes and have a different format.
+
+The remainder of this attribute is zero and closes out the third attribute in the file record.
+
+After this there is the amount of padding described by the second attribute in the file (see above) after which there are two more attributes of unknown purpose.
+
+<h2>Other</h2>
+After investigation it seems the ReFS file system driver doesn't clear a page when copying / overwriting shadow pages. Old data was aparent after valid data on newer pages. Thus a parser cannot rely on 0'd out regions to acts as deliminators or end markers.
+
+Using the above analysis I threw together a ReFS file lister that iterates over all directories and files from the root. It can be found on github <a href="https://gist.github.com/movitto/3d3a71b1a5307a09bc04">here</a>.
+
+Use it like so:
+
+<pre>
+ruby rels.rb --image foo.image --offset 123456789
+</pre>
+
+<%= link_to image_tag("rels.png", :style => "width: 75%"), image_path("rels.png") %>
+
+<h2>Next Steps</h2>
+Besides verifying all of the above, the next major action items are to extract the pages / clusters containing file data as well as all file metadata.

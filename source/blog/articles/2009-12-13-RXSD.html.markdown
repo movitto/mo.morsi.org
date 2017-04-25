@@ -1,0 +1,10 @@
+---
+title: RXSD
+date: 2009-12-13
+---
+
+Just released <a href="http://projects.morsi.org/wiki/RXSD">RXSD</a> (via <a href="http://github.com/movitto/RXSD">github</a>), a XSD <-> Ruby classes translator that makes use of Ruby's runtime introspection / reflection mechanisms to convert XML Schema Definitions to Ruby classes on the fly. Also supported is generating string Ruby class definitions (to be subsequently written to the filesystem) as well as a XSD metadata library / extendable builder interface to add output support for whatever language you need (python, c++, java, xml and other various formats, etc). 
+
+It's still pretty rough around the edges, I whipped it up in a little under a month (licensed under the LGPLv3+, so feel free to use it in proprietary apps, just make sure to publish the changes to RXSD itself back upstream), but most of whats there should be working. I'm going to keep hacking at it, mainly in part of a couple other things I'm doing, but also to improve features / support all around. This is my first project I'm hosting on github, so we'll see how that goes, from what I've seen it's pretty cool though (makes it very easy to share changes back / forth between projects). 
+
+As always, have at it!

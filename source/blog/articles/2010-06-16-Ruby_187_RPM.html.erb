@@ -1,0 +1,20 @@
+---
+title: Ruby 1.8.7 RPM
+date: 2010-06-16
+---
+
+<%= image_tag "ruby-fedora.png", :style => 'float: right; height: 250px; width: 200px;' %>
+
+<p>
+For those that are interested, I managed to cobble the Ruby 1.8.6 and 1.9.1 spec files together to form a Ruby 1.8.7 rpm (<a href="http://mo.morsi.org/blog/files/ruby-1.8.7.249-1.fc11.src_.rpm">srpm here</a>) built against Fedora 11 (yes I really need to update to F13, just haven't had the cycles yet). It's not 100% perfect, I tried to simplify the package as much as possible, removing any unneeded cruft, but in the process may have remove a couple things we wanted to keep (namely pulling the upstream ruby-tk branch for the ruby-tcltk package). But what is there is working as evident by the attached screenshot, and anything missing can easily be readded by using the 1.8.6 <a href="http://cvs.fedoraproject.org/viewvc/rpms/ruby/F-13/ruby.spec?view=co">specfile</a> as a reference.
+</p>
+
+<p>
+Next I'm going to be working towards Rails 3.0.0 rpms and a Ruby 1.8.7 / Fedora appliance that pulls all of this in. After this we should have a base platform to try some widespread integration testing for multiple versions of Ruby on Fedora.
+</p>
+
+<p>
+Enjoy!
+</p>
+
+<%= image_tag "ruby-187-fedora.png", :style => 'width:750px; height550px;' %>

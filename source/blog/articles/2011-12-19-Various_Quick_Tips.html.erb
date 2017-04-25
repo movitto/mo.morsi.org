@@ -1,0 +1,114 @@
+---
+title: Various Quick Tips
+date: 2011-12-19
+---
+
+<%= image_tag "quick-tips.jpg", :style => "float: right; width: 200px; height: 200px; margin-left: 20px;" %>Just a bunch of random quick tips, posted together for conciseness
+
+<hr/>
+
+<b>Passwordless SSH'ing as root</b>
+
+<p>
+When writing the test harness for <a href="http://github.com/movitto/snap">Snap</a> I needed to setup a few vms which I could ssh into as root automatically, without being prompted for a password. True, I could've setup a ssh key and install that on the vms, but instead for simplicity I wanted to be able to ssh in w/out requiring any credentials (yes insecure, but these VMs are isolated and the test harness makes sure they are shutdown post-invocation).
+</p>
+
+<p>
+On Fedora/Ubuntu this is accomplished by:
+</p>
+<ul>
+  <li>editing /etc/ssh/sshd_config an setting 'PermitEmptyPasswords yes'</li>
+  <li>Ubuntu requires one additional config change, to /etc/pam.d/sshd, namely comment out '@include common-auth' and replace with 'auth required pam_unix.so nullok'</li>
+  <li>restarting ssh: 'sudo service sshd restart'</li>
+  <li>setting sshd to come up automatically 'sudo chkconfig --levels 35 sshd on'</li>
+  <li>finally delete the root user's password 'sudo passwd -d root'</li>
+</ul>
+
+<p>
+Now you can ssh root@&lt;ip_address&gt; to login as root w/out a password (obviously use with caution).
+</p>
+
+<p>
+Incidentally this is also a means to get a root shell on Ubuntu, which by default does not allow this, requiring the user to run all privileged commands through 'sudo'
+</p>
+
+
+<hr/>
+
+<b>xbacklight</b>
+
+<p>
+I've run into a problem w/ the backlight not resuming normal operation after my laptop has been dock'd. This seems to be a <a href="http://www.thinkwiki.org/wiki/Problem_with_display_remaining_black_after_resume">common issue</a>, even on the Linux friendly Lenovo Thinkpad laptops.
+</p>
+
+<p>
+After some debugging I was able to resolve this by installing the 'xbacklight' package and running 'xbacklight -set 100'.
+</p>
+
+
+<hr/>
+
+<b>C Data Structure Visibility Practices</b>
+
+<p>
+I've been getting back into C programming (more on this soon). Of course w/ a lower-level language (C is actually a high level language, though usually considered low-level, but I digress) there are many approaches / ways to do things, especially concerning data visibility. Studying the <a href="http://libvirt.org">libvirt</a> library header file, I found one useful standard is to:
+</p>
+
+<p>
+- define public data structures, eg structures which can be manually instantiated by the user, as you normally would, eg
+</p>
+
+<% code("c") do %>
+typedef struct _myData{
+  ...fields...
+} myData;
+
+typedef myDataPtr *myData;
+<% end %>
+
+<p>
+- define private data structures, or data which can only be instantiated by calling one of your methods, w/ forward declerations in the public header, with the private definitions residing in an internal-only header/implementation file, eg
+</p>
+
+<% code("c") do %>
+typedef struct _privateData privateData;
+typedef privateDataPtr *privateData;
+
+privateDataPtr createPrivateData(...params...);
+<% end %>
+
+<p>
+- define public data structures refering to data managed / manipulated by an external entity, as 'info' structures, (these will often be associated w/ private data in some way) eg
+</p>
+
+<% code("c") do %>
+typedef struct _externalDataInfo {
+  ...fields about data managed elsewhere...
+} externalDataInfo;
+
+typedef externalDataInfoPtr *externalDataInfo;
+
+externalDataInfoPtr getExternalDataInfo(privateDataPtr private_data);
+<% end %>
+
+<hr/>
+
+<b>Per Host SSH Key</b>
+
+<p>
+Many thanks to <a href="http://jkeating.livejournal.com/">jkeating</a> for this pro-tip. To set which ssh key to use on a per-host basis, simply create a ~/.ssh/config file (chmod'd to 600) containing the following contents:
+</p>
+
+<pre>
+Host &lt;hostname&gt;
+IdentityFile &lt;path-to-ssh-key&gt;
+</pre>
+
+<p>
+Also optionally specify 'User &lt;username&gt;' to not have to prefix your remote username to the hostname when logging in w/ a username different than your local one.
+</p>
+
+
+<hr/>
+
+<a href="http://www.youtube.com/watch?v=TXlvFpf56vU&feature=related">Thats all folks!</a>

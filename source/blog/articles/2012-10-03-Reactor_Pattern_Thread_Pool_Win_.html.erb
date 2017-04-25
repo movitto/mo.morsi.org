@@ -1,0 +1,27 @@
+---
+title: Reactor Pattern + Thread Pool = Win 
+date: 2012-10-03
+tags: design patters, jsonrpc, rjr
+---
+
+<%= image_tag "jsonrpc.png", :style => "float: left; margin-right: 10px;  width: 350px; height: 150px;" %>
+
+<p>
+<a href="https://github.com/movitto/rjr">RJR</a> uses <a href="http://rubyeventmachine.com/">eventmachine</a> on the backend to process incoming messages over tcp/amqp/http/websockets/etc and dispatch json-rpc requests to registered handlers. It also employs a built in <a href="http://en.wikipedia.org/wiki/Thread_pool_pattern">thread pool</a> to hand off requests to the dispatcher so that the reactor isn't blocked. What results from combining the <a href="http://en.wikipedia.org/wiki/Reactor_pattern">reactor pattern</a> with a thread pool is a highly reliable concurrent event processing system.
+</p>
+
+<p>
+The reactor central to eventmachine and the design pattern itself processes events one after another in a serial manner. Events are executed in the order that they arrive and no event executes until the one before it completes. Events can come from multiple sources and the reactor will take care of the serialization necessary to ensure data integrity.
+</p>
+
+<p>
+A developer initializes the necessary connections and receives events by registering callbacks to be triggered on their invocation. Since the reactor blocks on any operation, the developer needs to ensure that his/her callbacks execute quickly and return control back to the reactor to continue processing events. Threads can be used to accomplish this, but spinning up a thread is an intensive operation, so a managed thread pool can be used as a nice solution that allows the developer to execute callbacks quickly and asyncronously without blocking the reactor.
+</p>
+
+<p>
+Of course any resources leveraged by the callbacks will need to be protected from concurrent access but the nice thing is that if care is taken, the reactor itself can be used to handle this. In the callbacks launched by the thread pool, the developer can leverage the event machine reactor to schedule additional work that will be executed serially with the rest of the work already there. What results is an elegant / simple solution to schedule and process work concurrently with a built in mechanism to protect shared resources. Optimally the thread pool will incorporate a timeout mechanism that is able to kill jobs that exceed the timeout and restart their worker threads to keep things moving smoothly (as RJR does).
+</p>
+
+<p>
+I would give this combined design pattern a name (perhaps Reactor Pool?) but I'm sure someone out there probably has already thought about this... and blogged about it... and uploaded an article to wikipedia... etc...
+</p>

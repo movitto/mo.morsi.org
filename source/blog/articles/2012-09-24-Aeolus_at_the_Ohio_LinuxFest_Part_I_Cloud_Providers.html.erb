@@ -1,0 +1,318 @@
+---
+title: Aeolus at the Ohio LinuxFest - Part I Cloud Providers
+date: 2012-09-24
+---
+
+<p>
+<img src="https://www.aeolusproject.org/images/logo-frontpage.png" style="float: right; margin-left: 15px;" alt="aeolus" />This weekend I head out to Columbus, OH for the <a href="http://ohiolinux.org/">Ohio LinuxFest</a> where I will be presenting <a href="https://www.aeolusproject.org/">Aeolus</a>. This is one of the largest community run Linux conferences in the states, and should be my biggest presentation audience yet, so I'm really looking forward to going. The presentation leans heavily on a live demonstration of the software, with a minimal introduction to the topic and architecture at the beginning. This week a few of us in the Aeolus community are going to be <a href="http://blog.aeolusproject.org">blogging</a> / <a href="http://twitter.com/aeolusproject">tweeting</a> / etc to try and drive a bit of buzz around our recent work which includes support for more cloud providers (prominently openstack!), various command line utilities and migration tooling, and our community efforts.
+</p>
+
+<p>
+The demo consists of two machines, my desktop workstation acting as an 'external' cloud provider, and my laptop running a vm w/ the Aeolus suite on it. Network resources are always unreliable at conferences, so I'm not planning on deploying to ec2 or similar, but rather I have setup <a href="http://www.openstack.org/">OpenStack</a> and <a href="http://ovirt.org">oVirt</a> (RHEV) on my desktop, each bonded to their own management network interface, through which they will be controlled via my laptop. The exact same commands and setup I will be demoing works with any cloud provider supported by the Aeolus suite (which is the most comprehensive IaaS cloud management suite to date).
+</p>
+
+<img src="http://ohiolinux.org/sites/www.ohiolinux.org/files/images/OLF-GENERICLOGO.jpg" style="float: left; margin-right: 10px; height:300px; width: 290px;" />The demo will be run on freshly installed Fedora 17 systems with components from the Fedora package repositories. In retrospect the hardest part of setting everything up was setting up the cloud providers themselves, after which Aeolus was a cinch. It is no surprise through, a Cloud-based computational environment is a very complicated thing, and involves orchestrating many disparate components, each of which may be complicated in its own right. This reinforces the need for a technology such as Aeolus, as even with open frameworks such as oVirt and OpenStack, the end user is often adopting one particular way of doing things, which entails certain benefits and drawbacks. By adopting open standards 100% centred around portability, one is freeing themselves from being tied to a specific implementation and may choose at any point to adopt alternate solutions with minimal effort.
+
+<p>
+Attached below is my guide on setting up oVirt and OpenStack on a fresh F17 box (after the <a href="http://mo.morsi.org/blog/node/372">jump</a>). I plan on posting an Aeolus overview later to demo interaction with the providers setup below.
+</p>
+
+<div style="clear: both; margin-bottom: 10px"></div>
+
+<h2>Setting up OpenStack on Fedora</h2>
+
+<p>
+This <a href="http://fedoraproject.org/wiki/Getting_started_with_OpenStack_on_Fedora_17">guide</a> is monumental, perhaps the best/definitive end-to-end guide on setting up openstack on Fedora. Openstack may be installed in a VM, but it may _not_ be run off a live cd (due to current restrictions on memory/disk transfer sizes).
+</p>
+
+<p>
+To start off, setup your environment
+</p>
+
+<% code("ruby") do %>
+  # export ADMIN_TOKEN=$(openssl rand -hex 10)
+  # export OS_USERNAME=admin
+  # export OS_PASSWORD=cloudpass
+  # export OS_TENANT_NAME=admin
+  # export OS_AUTH_URL=http://<endpoint>:5000/v2.0/
+  # export SERVICE_ENDPOINT=http://<endpoint>:35357/v2.0/
+  # export SERVICE_TOKEN=$ADMIN_TOKEN
+  # export ADMIN_PASSWORD=$OS_PASSWORD
+  # export SERVICE_PASSWORD=servicepass 
+<% end %>
+
+<p>
+Make sure to set <endpoint> to the local ip, hostname, or location which internal / external services can connect to.
+</p>
+
+<p>
+Yum install the necessary components:
+</p>
+
+<% code do %>
+  # yum install mysql-server qpid-cpp-server-daemon
+  # yum install --enablerepo=updates-testing openstack-utils openstack-nova openstack-glance openstack-keystone openstack-dashboard
+<% end %>
+
+<p>
+Set the root mysql password:
+</p>
+
+<% code do %>
+  # mysqladmin -uroot password "cloudpass"
+  # service mysqld restart
+<% end %>
+
+<p>
+Setup the openstack databases:
+</p>
+
+<% code do %>
+  # openstack-db --service nova --init -y --rootpw cloudpass
+  # openstack-db --service glance --init -y --rootpw cloudpass
+  # openstack-db --service keystone --init -y --rootpw cloudpass
+<% end %>
+
+<p>
+Create a volume group for openstack-nova-volume (default 'nova-volumes')
+</p>
+
+<% code do %>
+  # dd if=/dev/zero of=/var/lib/nova/nova-volumes.img bs=1M seek=2k count=0
+  # vgcreate nova-volumes $(sudo losetup --show -f /var/lib/nova/nova-volumes.img)
+  # openstack-config --set /etc/nova/nova.conf DEFAULT volume_group nova-volumes
+<% end %>
+
+<p>
+Config openstack to use keystone to authenticate
+</p>
+
+<% code do %>
+  # openstack-config --set /etc/keystone/keystone.conf DEFAULT admin_token $ADMIN_TOKEN
+  # openstack-config --set /etc/nova/api-paste.ini filter:authtoken admin_tenant_name service
+  # openstack-config --set /etc/nova/api-paste.ini filter:authtoken admin_user nova
+  # openstack-config --set /etc/nova/api-paste.ini filter:authtoken admin_password servicepass
+  # openstack-config --set /etc/nova/nova.conf DEFAULT auth_strategy keystone
+  # openstack-config --set /etc/glance/glance-api.conf paste_deploy flavor keystone
+  # openstack-config --set /etc/glance/glance-registry.conf paste_deploy flavor keystone
+  # openstack-config --set /etc/glance/glance-api-paste.ini filter:authtoken admin_tenant_name service
+  # openstack-config --set /etc/glance/glance-api-paste.ini filter:authtoken admin_user glance
+  # openstack-config --set /etc/glance/glance-api-paste.ini filter:authtoken admin_password servicepass
+  # openstack-config --set /etc/glance/glance-registry-paste.ini filter:authtoken admin_tenant_name service
+  # openstack-config --set /etc/glance/glance-registry-paste.ini filter:authtoken admin_user glance
+  # openstack-config --set /etc/glance/glance-registry-paste.ini filter:authtoken admin_password servicepass
+<% end %>
+
+<p>
+Start the openstack nova, glance, keystone services & their dependencies
+</p>
+
+<% code do %>
+  # systemctl start qpidd.service
+  # systemctl enable qpidd.service
+  # systemctl start libvirtd.service
+  # systemctl enable libvirtd.service
+
+  # systemctl start openstack-keystone.service
+  # systemctl enable openstack-keystone.service
+
+  # systemctl start openstack-glance-api.service
+  # systemctl enable openstack-glance-api.service
+  # systemctl start openstack-glance-registry.ser
+
+  # systemctl start openstack-nova-api.service
+  # systemctl enable openstack-nova-api.service
+  # systemctl start openstack-nova-objectstore.service
+  # systemctl enable openstack-nova-objectstore.service
+  # systemctl start openstack-nova-compute.service
+  # systemctl enable openstack-nova-compute.service
+  # systemctl start openstack-nova-network.service
+  # systemctl enable openstack-nova-network.service
+  # systemctl start openstack-nova-volume.service
+  # systemctl enable openstack-nova-volume.service
+  # systemctl start openstack-nova-scheduler.service
+  # systemctl enable openstack-nova-scheduler.service
+<% end %>
+
+<p>
+Create initial keystone accounts
+</p>
+
+<% code do %>
+  # openstack-keystone-sample-data
+<% end %>
+
+<p>
+Create a network for openstack
+</p>
+
+<% code do %>
+  # nova-manage network create demonet 10.0.0.0/24 1 256 --bridge=demonetbr0
+  # modprobe nbd
+<% end %>
+
+<p>
+Import a base image to base new instances off off, you may grab a simple
+on from my server (anything supported by qemu/kvm will do):
+</p>
+
+<% code do %>
+  # virsh net-destroy default
+  # wget http://syracloud.net/~mmorsi/f16-x86_64-openstack-sda.qcow2
+  # glance add name=f16-jeos is_public=true disk_format=qcow2 container_format=bare < f16-x86_64-openstack-sda.qcow2
+<% end %>
+
+<p>
+If you're running in a vm, need to setup software virtualization:
+</p>
+
+<% code do %>
+  # openstack-config --set /etc/nova/nova.conf DEFAULT libvirt_type qemu
+  # openstack-config --set /etc/nova/nova.conf DEFAULT scheduler_default_filters AllHostsFilter
+  # setsebool -P virt_use_execmem on
+<% end %>
+
+<p>
+Unless there were any errors, openstack should now be running on your system. You may start instances as any user with access to the system (as defined in the environment in the first step).
+</p>
+
+<p>
+Create a key to use to log-into instances:
+</p>
+
+<% code do %>
+  $ nova keypair-add mykey > oskey.priv
+  $ chmod 600 oskey.priv
+<% end %>
+
+<p>
+Start and verify and instance instance
+</p>
+
+<% code do %>
+  $ nova boot myserver --flavor 2 --key_name mykey --image $(glance index | grep f16-jeos | awk '{print $1}')
+  $ nova list
+  $ sudo virsh list # once started
+<% end %>
+
+<p>
+SSH into the running instance
+</p>
+
+<% code do %>
+  $ ssh -i oskey.priv root@10.0.0.2
+<% end %>
+
+
+<h2>Setting up oVirt on Fedora</h2>
+
+<p>
+This oVirt<a href="http://ovirt.org/wiki/">website</a> is quite comprehensive and includes everything needed to get it up and running. oVirt may not be installed in a vm nor run off a live cd.
+</p>
+
+<p>
+Setting a host to run oVirt, this will need to be resolvable for whoever is connecting to oVirt:
+</p>
+
+<% code do %>
+  # echo "192.168.122.218 ovirt" >> /etc/hosts
+  # echo "HOSTNAME=ovirt" >> /etc/sysconfig/network
+<% end %>
+
+<p>
+Configure the prequisites
+</p>
+
+<% code do %>
+  # dnsmasq --bind-interfaces --listen-address=127.0.0.1
+  # echo "PermitRootLogin yes" >> /etc/ssh/sshd_config
+  # service sshd restart
+<% end %>
+
+<p>
+Configure NFS by coping the following to /etc/exports:
+</p>
+
+<% code do %>
+  /ext/ovirt31storage *(rw,async,no_subtree_check,all_squash,anonuid=36,anongid=36)
+  /ext/ovirt31export *(rw,async,no_subtree_check,all_squash,anonuid=36,anongid=36)
+  /ext/ovirt31isos *(rw,async,no_subtree_check,all_squash,anonuid=36,anongid=36)
+<% end %>
+
+<p>
+Finish setting up nfs to store images, isos, and other cloud data.
+</p>
+
+<% code do %>
+  # mkdir -p /ext/ovirt31storage /ext/ovirt31export /ext/ovirt31isos
+  # chown vdsm.kvm /ext/ovirt31storage /ext/ovirt31export /ext/ovirt31isos
+  # chmod 775 /ext/ovirt31storage /ext/ovirt31export /ext/ovirt31isos
+  # service nfsd restart
+<% end %>
+
+<p>
+Install / set up oVirt:
+</p>
+
+<% code do %>
+  # yum localinstall http://ovirt.org/releases/ovirt-release-fedora.noarch.rpm
+  # yum install ovirt-engine
+  # engine-setup
+<% end %>
+
+<a href="http://wiki.ovirt.org/wiki/Quick_Start_Guide#Create_an_NFS_Data_Domain"><img src="http://wiki.ovirt.org/w/images/1/1c/Storage-nfs.png" style="float: right; margin-left: 20px; width: 315px; height: 290px;" /></a>Add your nfs storage domains via the oVirt <a href="http://wiki.ovirt.org/wiki/Quick_Start_Guide#Create_an_NFS_Data_Domain">web interface</a>
+<ul>
+<li>open a web browser, navigate to http://ovirt</li>
+<li>client 'Administrative' interface and login (credentials for engine-setup command)</li>
+<li>Click storage domains and then create / new domain</li>
+<li>Fill in nfs details of storage domain, note:
+<ul>
+<li>add and activate the 'ovirt31storage' domain before the isos or export
+<li>make sure to specify a mount point that is externally accessible (eg ovirt:/ovirt31storage), this will need to be the EXACT SAME mountpoint you moint on the Aeolus side
+<li>make sure to select the 'iso' and 'export' types for the other domains
+<li>each time your machine reboots you will need to make sure the domains start off as umounted before activating them in the oVirt web interface (see <a href="https://www.aeolusproject.org/redmine/projects/aeolus/wiki/Setting_up_oVirt">this script</a>)</li>
+</ul></li>
+</ul>
+
+<p>
+Download / import an ISO disk image to boot instances off of. For example download Fedora <a href="http://fedoraproject.org/get-fedora">here</a> and import it into oVirt with:
+</p>
+
+<% code do %>
+  # engine-iso-uploader -i is1 upload Downloads/Fedora-17-x86_64-Live-Desktop.iso
+<%end %>
+
+
+<a href="http://wiki.ovirt.org/wiki/Quick_Start_Guide#Manage_Virtual_Machines"><img src="http://wiki.ovirt.org/w/images/7/76/New-fedora-server.png" style="float: left; margin-right: 20px; width: 315px; height: 290px;" /></a>In the same admin interface as above, click on <a href="http://wiki.ovirt.org/wiki/Quick_Start_Guide#Configure_Hosts">hosts</a>, then 'new host'.
+<ul>
+<li>Fill in the details for the local host. No need to configure power management.</li>
+<li>This most likely will reboot the machine as the node is added to ovirt</li>
+</ul>
+
+<p>
+Finally in the admin interface, you can click 'VMs', then 'new server' to create a new instance.
+</p>
+
+<ul>
+<li>You will need to attach a disk image to the instance when prompted</li>
+<li>You may optionally attach a network interface to the instance when prompted</li>
+<li>You may launch the instance with 'Run once', selecting the ISO you uploaded before to boot off of</li>
+</ul>
+<div style="clear: both;  margin-bottom: 10px"></div>
+
+<h2>Final steps</h2>
+
+<p>
+In my next post I will be discussing using Aeolus to connect to OpenStack and oVirt as setup above. Since I will be running Aeolus on my laptop, which will be the only communication point for my desktop, I disabled the firewall on the desktop and openstack vm running ontop of it so as to simplify the setup. The laptop assigns the desktop static ip addresses which are also aliased in my local /etc/hosts file (along with the vm running aeolus):
+</p>
+
+<% code do %>
+  110.220.110.30 ovirt
+  110.220.110.10 openstack
+  110.220.110.40 openstack_vm
+  192.168.122.129 aeolus
+<% end %>
+
+<p>
+Make sure to stay tuned for the next steps in the process which should be coming later today / tomorrow!
+</p>

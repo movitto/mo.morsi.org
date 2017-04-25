@@ -1,0 +1,397 @@
+---
+title: LVM Internals
+date: 2016-03-29
+tags: lvm, storage
+---
+
+<p>
+This post is intended to detail the <a href="https://en.wikipedia.org/wiki/Logical_Volume_Manager_%28Linux%29">LVM</a> internal disk layout including the thin-volume metadata structure. While documentation of the LVM user space management utilities is abundant, very little exists in the realm of on-disk layout & structures. Having just added <a href="https://github.com/ManageIQ/manageiq/pull/7355">support</a> for this to CloudForms, I figure this would be a good opportunity to expand on this for future reference.
+</p>
+
+<p>
+The LVM framework relies on the underlying 'device-mapper' library to map blocks on physical disks (called <b>physical volumes</b>) to custom constructs depending on the intent of the system administrator. Physical and other volumes can be sliced, mixed, and matched to form <b>Logical Volumes</b>, which are presented to the user as normal disks, but dispatch read / write operations to the underlying storage objects depending on configuration. The Physical and Logical Volumes are organized into <b>Volume Groups</b> for management purposes.
+</p>
+
+<%= link_to image_tag("lvm1.png", :style=>"width: 75%"), "lvm1.png" %>
+
+<p>
+To analyze a LVM instance, one could start from the bottom up, inspecting each physical volume for the on disk metadata structures, reconstructuing and using them to lookup the blocks to read and write. Physical volumes may constitute any block device Linux normally presents, there are no special restrictions, and this way LVM managed volumes can be chained together. On a recent VM, /dev/sda2 was used for the LVM managed / and /home partitions on installation, after which I extended the logical volume pool to include /dev/sdb using the recent thin pool provisioning features (more on this below).
+</p>
+
+<p>
+Examining /dev/sda2 we can find the LVM <b>Disk Label</b> which may reside on one of the first 4 512-byte sectors on the disk. The address of the <b>Physical Volume Header</b> is given from this, specifically:
+</p>
+
+<% code do %>
+  pv_header_address = label_header.sector.xl * SECTOR_SIZE (512 bytes) + label_header.offset_xl
+<% end %>
+
+<p>
+The Physical Volume Header gives us the base information about the physical volume including disk data and metadata locations. This call all be read sequentially / incrementally from the addresses contained in the header. These data structures can be seen below:
+</p>
+
+<% code("ruby") do %>
+LVM_PARTITION_TYPE  = 142
+SECTOR_SIZE         = 512
+LABEL_SCAN_SECTORS  = 4
+
+LVM_ID_LEN          = 8
+LVM_TYPE_LEN        = 8
+LVM_ID              = "LABELONE"
+
+PV_ID_LEN           = 32
+MDA_MAGIC_LEN       = 16
+FMTT_MAGIC          = "\040\114\126\115\062\040\170\133\065\101\045\162\060\116\052\076"
+
+LABEL_HEADER = BinaryStruct.new([
+  "A#{LVM_ID_LEN}",       'lvm_id',
+  'Q',                    'sector_xl',
+  'L',                    'crc_xl',
+  'L',                    'offset_xl',
+  "A#{LVM_TYPE_LEN}",     'lvm_type'
+])
+
+# On disk physical volume header.
+PV_HEADER = BinaryStruct.new([
+  "A#{PV_ID_LEN}",        'pv_uuid',
+  "Q",                    'device_size_xl'
+])
+
+# On disk disk location structure.
+DISK_LOCN = BinaryStruct.new([
+  "Q",                    'offset',
+  "Q",                    'size'
+])
+
+# On disk metadata area header.
+MDA_HEADER = BinaryStruct.new([
+  "L",                    'checksum_xl',
+  "A#{MDA_MAGIC_LEN}",    'magic',
+  "L",                    'version',
+  "Q",                    'start',
+  "Q",                    'size'
+])
+
+# On disk raw location header, points to metadata.
+RAW_LOCN = BinaryStruct.new([
+  "Q",                    'offset',
+  "Q",                    'size',
+  "L",                    'checksum',
+  "L",                    'filler'
+])
+<% end %>
+
+<%= link_to image_tag("lvm2.png"), "lvm2.png" %>
+
+<p>
+The raw LVM metadata contents areas consists of simple <a href="https://en.wikipedia.org/wiki/JSON">JSON</a>-like key / value data structs where objects, arrays, and primtive values (including strings) may be encoded. The top level of each extracted metadata contents will consist of a single key / value pair, the volume group name and encoded properties. From there logical and physical volumes are detailed. Sample metadata contents can be seen below:
+</p>
+
+<% code("ruby") do %>
+fedora {
+    id = "sOIQC3-75Rq-SQnT-0lfj-fgni-cU0i-Bnbeao"
+    seqno = 11
+    format = "lvm2"
+    status = ["RESIZEABLE", "READ", "WRITE"]
+    flags = []
+    extent_size = 8192
+    max_lv = 0
+    max_pv = 0
+    metadata_copies = 0
+    
+    physical_volumes {
+        
+        pv0 {
+            id = "ZDOhNU-09hz-rsd6-MrJH-20sN-ajcg-opqhDf"
+            device = "/dev/sda2"
+            
+            status = ["ALLOCATABLE"]
+            flags = []
+            dev_size = 19945472
+            pe_start = 2048
+            pe_count = 2434
+        }
+        
+        pv1 {
+            id = "QT6OH2-1eCc-CyxL-vYkj-RJn3-vuFO-Jg9Qu2"
+            device = "/dev/sdb"
+            
+            status = ["ALLOCATABLE"]
+            flags = []
+            dev_size = 6291456
+            pe_start = 2048
+            pe_count = 767
+        }
+    }
+    
+    logical_volumes {
+        
+        swap {
+            id = "iSNIOA-N4dh-qeYp-hAG9-mUGG-PFsL-MomHTO"
+            status = ["READ", "WRITE", "VISIBLE"]
+            flags = []
+            creation_host = "localhost"
+            creation_time = 1454442463
+            segment_count = 1
+            
+            segment1 {
+                start_extent = 0
+                extent_count = 256
+                
+                type = "striped"
+                stripe_count = 1
+                
+                stripes = [
+                    "pv0", 0
+                ]
+            }
+        }
+        
+        pool00 {
+            id = "seRK1m-3AYe-0Y3N-TCvF-ABhh-7AKj-gX85eY"
+            status = ["READ", "WRITE", "VISIBLE"]
+            flags = []
+            creation_host = "localhost"
+            creation_time = 1454442464
+            segment_count = 1
+            
+            segment1 {
+                start_extent = 0
+                extent_count = 1940
+                
+                type = "thin-pool"
+                metadata = "pool00_tmeta"
+                pool = "pool00_tdata"
+                transaction_id = 1
+                chunk_size = 128
+                discards = "passdown"
+                zero_new_blocks = 1
+            }
+        }
+        
+        root {
+            id = "w0IcgL-HHnY-ptff-wZmT-3uQx-KBuu-Ep0YFq"
+            status = ["READ", "WRITE", "VISIBLE"]
+            flags = []
+            creation_host = "localhost"
+            creation_time = 1454442464
+            segment_count = 1
+            
+            segment1 {
+                start_extent = 0
+                extent_count = 1815
+                
+                type = "thin"
+                thin_pool = "pool00"
+                transaction_id = 0
+                device_id = 1
+            }
+        }
+        
+        lvol0_pmspare {
+            id = "Sm33QK-HzFZ-Vo6b-6qBf-DsE2-uufG-T5EAG7"
+            status = ["READ", "WRITE"]
+            flags = []
+            creation_host = "localhost"
+            creation_time = 1454442463
+            segment_count = 1
+            
+            segment1 {
+                start_extent = 0
+                extent_count = 2
+                
+                type = "striped"
+                stripe_count = 1
+                
+                stripes = [
+                    "pv0", 256
+                ]
+            }
+        }
+        
+        pool00_tmeta {
+            id = "JdOGun-8vt0-UdUI-I3Ju-aNjN-NurO-Yd7kan"
+            status = ["READ", "WRITE"]
+            flags = []
+            creation_host = "localhost"
+            creation_time = 1454442464
+            segment_count = 1
+            
+            segment1 {
+                start_extent = 0
+                extent_count = 2
+                
+                type = "striped"
+                stripe_count = 1
+                
+                stripes = [
+                    "pv0", 2073
+                ]
+            }
+        }
+        
+        pool00_tdata {
+            id = "acemRb-wAqV-Nvwh-LR2L-LHyT-Lhvm-g3Wl3F"
+            status = ["READ", "WRITE"]
+            flags = []
+            creation_host = "localhost"
+            creation_time = 1454442464
+            segment_count = 2
+            
+            segment1 {
+                start_extent = 0
+                extent_count = 1815
+                
+                type = "striped"
+                stripe_count = 1
+                
+                stripes = [
+                    "pv0", 258
+                ]
+            }
+            segment2 {
+                start_extent = 1815
+                extent_count = 125
+                
+                type = "striped"
+                stripe_count = 1
+                
+                stripes = [
+                    "pv0", 2075
+                ]
+            }
+        }
+    }
+}
+<% end %>
+
+<p>
+This is all the data necessary to map logical volume lookups to normal / striped physical volume sectors. Note if there are multiple physical volumes in the volume group, be sure to extract all metadata from as mappings may result in blocks being cross-referenced.
+</p>
+
+<p>
+To lookup a logical address, first determine which logical volume segment range the address falls into. Segments boundries are specified via extents whose size is given in the volume group metadata (note this is represnted in sectors, or 512-byte blocks). From there it's a simple matter of reading the blocks off the physical volume segments given by the specified stripe id and offset, being sure to correct map positional start / stop offsets.
+</p>
+
+<%= link_to image_tag("lvm3.png"), "lvm3.png" %>
+
+<p>
+The process gets a little more complicated for thinly provisioned volumes, which are a relatively new addition to the LVM framework where logical volumes marked as '<b>thin</b>' do not directly map to physical extents but rather are <b>pooled</b> together via a mapping structure and shared data partition. This allows the centralized partition to grow / shrink on demand and the decoupling of pool properties from actual underlying data space availability.
+</p>
+
+<p>
+To implement this each thin logical volume references a pool volume which in return references metadata and data volumes (as can be seen above). Addresses to be accessed from the thin volume are first processed using the pool metadata volume which contains an on disk BTree structure mapping thin volume blocks to data volume blocks.
+</p>
+
+<p>
+The thin volume metadata <b>superblock</b> can be read off the metadata volume starting at address 0. This gives us the data & metadata space maps as well as the device details and data mapping trees allowing us to perform the actual address resolution. Device Details is a one level id -> device info BTree providing thin volume device information while the <b>Data Map</b> is a 2 level BTree mapping of device id -> device blocks -> data blocks.
+</p>
+
+<p>
+Once this information is parsed from the pool metadata determine which data volume blocks to read for a given thin volume address is simply a matter of looking up the corresponding blocks via the data map and offsetting the start / ending positions accordingly. The complete thin volume metadata structures can be seen below:
+</p>
+
+<% code("ruby") do %>
+  SECTOR_SIZE = 512
+
+  THIN_MAGIC = 27022010
+
+  SPACE_MAP_ROOT_SIZE = 128
+
+  MAX_METADATA_BITMAPS = 255
+
+  SUPERBLOCK = BinaryStruct.new([
+   'L',                       'csum',
+   'L',                       'flags_',
+   'Q',                       'block',
+   'A16',                     'uuid',
+   'Q',                       'magic',
+   'L',                       'version',
+   'L',                       'time',
+
+   'Q',                       'trans_id',
+   'Q',                       'metadata_snap',
+
+   "A#{SPACE_MAP_ROOT_SIZE}", 'data_space_map_root',
+   "A#{SPACE_MAP_ROOT_SIZE}", 'metadata_space_map_root',
+
+   'Q',                       'data_mapping_root',
+
+   'Q',                       'device_details_root',
+
+   'L',                       'data_block_size',     # in 512-byte sectors
+
+   'L',                       'metadata_block_size', # in 512-byte sectors
+   'Q',                       'metadata_nr_blocks',
+
+   'L',                       'compat_flags',
+   'L',                       'compat_ro_flags',
+   'L',                       'incompat_flags'
+  ])
+
+  SPACE_MAP = BinaryStruct.new([
+    'Q',                      'nr_blocks',
+    'Q',                      'nr_allocated',
+    'Q',                      'bitmap_root',
+    'Q',                      'ref_count_root'
+  ])
+
+  DISK_NODE = BinaryStruct.new([
+    'L',                      'csum',
+    'L',                      'flags',
+    'Q',                      'blocknr',
+
+    'L',                      'nr_entries',
+    'L',                      'max_entries',
+    'L',                      'value_size',
+    'L',                      'padding'
+    #'Q',                      'keys'
+  ])
+
+  INDEX_ENTRY = BinaryStruct.new([
+    'Q',                      'blocknr',
+    'L',                      'nr_free',
+    'L',                      'none_free_before'
+  ])
+
+  METADATA_INDEX = BinaryStruct.new([
+    'L',                      'csum',
+    'L',                      'padding',
+    'Q',                      'blocknr'
+  ])
+
+  BITMAP_HEADER = BinaryStruct.new([
+    'L',                      'csum',
+    'L',                      'notused',
+    'Q',                      'blocknr'
+  ])
+
+  DEVICE_DETAILS = BinaryStruct.new([
+    'Q',                      'mapped_blocks',
+    'Q',                      'transaction_id',
+    'L',                      'creation_time',
+    'L',                      'snapshotted_time'
+  ])
+
+  MAPPING_DETAILS = BinaryStruct.new([
+    'Q',                       'value'
+  ])
+<% end %>
+
+<p>
+One can see this algorithm in action via this <a href="https://gist.github.com/movitto/9beef891b27a39035d51549709cc3899">LVM parsing script</a> extract from CloudForms. You will need to install the 'binary_struct' gem and run this script as a privileged user inorder to read the binary disks:
+</p>
+
+<% code do %>
+$ sudo gem install binary_struct
+$ sudo ruby ruby lvm-parser.rb -d /dev/sda2 -d /dev/sdb
+<% end %>
+
+<p>
+From there you can extract any info from the lvm metadata structures or data segments for further analysis.
+</p>
+
+<hr/>
+
+"If it's on the Internet it must be true"<br/>
+&nbsp;&nbsp;-George Washington

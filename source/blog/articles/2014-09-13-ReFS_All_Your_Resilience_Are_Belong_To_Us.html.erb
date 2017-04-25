@@ -1,0 +1,274 @@
+---
+title: ReFS - All Your Resilience Are Belong To Us
+date: 2014-09-13
+tags: refs, filesystems
+---
+
+<p>
+(grammer <a href="http://en.wikipedia.org/wiki/All_your_base_are_belong_to_us">intentional</a>) The last few months I've been looking into the <a href="http://en.wikipedia.org/wiki/ReFS">Resilent File System</a> (ReFS), which has only undergone limited analysis so far. Let's fix that shall we!
+</p>
+
+<p>
+Before we begin, I've found these to be the best existing public resources so far concerning the FS, they've helped streamline the investigation greatly.
+</p>
+
+<p>
+[1] <a href="http://blogs.msdn.com/b/b8/archive/2012/01/16/building-the-next-generation-file-system-for-windows-refs.aspx">blogs.msdn.com</a> - Straight from the source, a msdn blog post on various concepts around the FS internals.
+</p>
+
+<p>
+[2] <a href="http://www.williballenthin.com/forensics/refs/">williballenthin.com</a> - An extended analysis of the high level layout and data structures in ReFS. I've verified alot of these findings using my image locally and expanded upon various points below. Aspects of the described <a href="http://www.williballenthin.com/forensics/refs/memory/index.html">memory structures</a> can be seen in the images locally.
+</p>
+
+<p>
+[3] <a href="http://forensicadventures.blogspot.com/">forensicadventures.blogspot.com</a> - Another good analysis, of particular interest is the ReFS / NTFS comparison graphic (<a href="http://forensicadventures.blogspot.com/2014/04/refsntfs-comparison.html">here</a>).
+</p>
+
+<p>
+<b>Note</b> in general it's good to be familiar w/ generic FS concepts and ones such as B+ trees and journaling.
+</p>
+
+<p>
+Also familiarity w/ the NTFS filesystem helps.
+</p>
+
+<p>
+Also <b>note</b> I'm not guaranteeing the accuracy of any of this, there could be mistakes in the data and/or algorithm analysis.
+</p>
+
+
+<p>
+<h2>Volume / Partition Layout</h2>
+</p>
+
+<p>
+The size of the image I analyzed was 92733440 bytes with the ReFS formatted partition starting at 0x2010000.
+</p>
+
+<p>
+The first sector of this partition looks like:
+</p>
+
+<pre>
+byte 0x00: 00 00 00 52   65 46 53 00   00 00 00 00   00 00 00 00
+byte 0x10: 46 53 52 53   00 02 12 E8   00 00 3E 01   00 00 00 00
+byte 0x20: 00 02 00 00   80 00 00 00   01 02 00 00   0A 00 00 00
+byte 0x30: 00 00 00 00   00 00 00 00   17 85 0A 9A   C4 0A 9A 32
+</pre>
+
+<p>
+Since assumably some size info needs to be here, it is possible that:
+
+<pre>
+vbr bytes 0x20-0x23 : bytes per sector    (0x0200)
+vbr bytes 0x24-0x27 : sectors per cluster (0x0080)
+</pre>
+
+<p>
+Thus:
+</p>
+
+<pre>
+1 sector = 0x200 bytes = 512 bytes
+0x80 sectors/cluster * 0x200 bytes/sector = 0x10000 bytes/cluster = 65536 = 64KB/cluster
+</pre>
+
+<p>
+Clusters are broken down into pages which are 0x4000 bytes in size (see <a href="http://www.williballenthin.com/forensics/refs/disk/index.html">[2]</a> for page id analysis).
+</p>
+
+<p>
+In this case:
+</p>
+
+<pre>
+  0x10000 (bytes / cluster) / 0x4000 (bytes/page) = 4 pages / cluster
+</pre>
+
+<p>
+Also:
+</p>
+
+<pre>
+  0x4000 (bytes/page) / 0x200 (bytes/sector) = 0x20 = 32 sectors per page
+</pre>
+
+
+<p>
+VBR bytes 0-0x16 are the same for all the ReFS volumes I've seen.
+</p>
+
+<p>
+This block is followed by 0's until the first page.
+</p>
+
+<p>
+<h2>Pages</h2>
+According to [1]:
+</p>
+
+<p>
+"<i>The roots of these allocators as well as that of the object table are reachable from a well-known location on the disk</i>"
+</p>
+
+<p>
+On the images I've seen the first page id always is 0x1e, starting 0x78000 bytes after the start of the partition.
+</p>
+
+<p>
+<b>Metadata</b> pages all have a standard header which is 0x30 (48) bytes in length:
+</p>
+
+<pre>
+byte 0x00: XX XX 00 00   00 00 00 00   YY 00 00 00   00 00 00 00
+byte 0x10: 00 00 00 00   00 00 00 00   ZZ ZZ 00 00   00 00 00 00
+byte 0x20: 01 00 00 00   00 00 00 00   00 00 00 00   00 00 00 00
+</pre>
+
+<pre>
+bytes 0/1 (XX XX) is the <b>page id</b> which is sequential and corresponds to the 0x4000 offset of the page
+byte 2 (YY) is the <b>sequence number</b>
+byte 0x18 (ZZ ZZ) is the <b>virtual page number</b>
+</pre>
+
+<p>
+The page id is unique for every page in the FS. The virtual page number will be the same between journals / shadow pages though the sequence is incremented between those.
+</p>
+
+<p>
+From there the root page has a structure which is still unknown (likely a tree root as described [1] and indicated by the memory structures page on [2]).
+</p>
+
+<p>
+The 0x1f page is skipped before pages resume at 0x20 and follow a consistent format.
+</p>
+
+<h2>Page Layout / Tables</h2>
+
+<p>
+After the page header, metadata pages consist of entries prefixed with their length. The meaning of these entities vary and are largely unknown but various fixed and relational byte values do show consistency and/or exhibit certain patterns.
+</p>
+
+<p>
+To <b>parse the entries</b> (which might be refered to a records or attributes), one could:
+</p>
+
+<ul>
+<li>parse the first 4 bytes following the page header to extract the first entry length</li>
+<li>parse the remaining bytes from the entry (note the total length includes the first four bytes containing the length specification).</li>
+<li>parse the next 4 bytes for the next entry length</li>
+<li>repeat until the length is zero</li>
+</ul>
+
+<p>
+The four bytes following the length often takes on one of two formats depending on the type of entity:
+</p>
+
+<ul>
+<li>the first two bytes contain entity type with the other two containing flags (this hasn't been fully confirmed)</li>
+
+<li>if the entity if a record in a table, these first two bytes will be the offset to the record key and the other two will be the key length.</li>
+</ul>
+
+<p>
+If the entry is a table record,
+</p>
+
+<ul>
+<li>the next two bytes are the record flags,</li>
+<li>the next two bytes is the value offset</li>
+<li>the next two bytes is the value length</li>
+<li>the next two bytes is padding (0's)</li>
+</ul>
+
+<p>
+These values can be seen in the memory structures described in [2]. An example record looks like:
+</p>
+
+<pre>
+bytes 0-3: 50 00 00 00 # attribute length
+bytes 4-7: 10 00 10 00 # key offset / key length
+bytes 8-B: 00 00 20 00 # flags / value offset
+bytes C-F: 30 00 00 00 # value length / padding
+
+bytes 10-1F: 00 00 00 00   00 00 00 00   20 05 00 00   00 00 00 00 # key (@ offset 0x10 and of length 0x10)
+bytes 20-2F: E0 02 00 00   00 00 00 00   00 00 02 08   08 00 00 00 # -|
+bytes 30-3F: 1F 42 82 34   7C 9B 41 52   00 00 00 00   00 00 00 00 #  |-value (@ offset 0x20 and length 0x30)
+bytes 40-4F: 08 00 00 00   08 00 00 00   00 05 00 00   00 00 00 00 # -|
+</pre>
+
+
+<h2>Entries</h2>
+
+<p>
+Various attributes and values in them take on particular meaning.
+</p>
+
+<ul>
+<li>the first attribute (type 0x28) has information about the page contents,</li>
+
+<li>Bytes 1C-1F of the first attribute seem to be a unique object-id / type which can idenitify the intent of the page (it is consistent between similar pages on different images). It is also repeated in bytes 0x20-0x23</li>
+  
+<li>Byte 0x20 of the first attribute contains the <b>number of records</b> in the table. This value is repeated in the record collection attribute. (see next bullet)</li>
+    
+<li>Before the table collection begins there is an 0x20 length attribute, containing the number of entries at byte 0x14. If the table gets too long this value will be 0x01 instead and there will be an additional entry before the collection of records (this entry doesn't seem to follow the conventional rules as there are an extra 40 bytes after the entry end indicated by its length)</li>
+
+<li>The collection of table records is simply a series of attributes, all beginning w/ the same header containing key and value offset and length (see previous section)</li>
+</ul>
+
+<h2>Special Pages</h2>
+
+<p>
+Particular pages seem to take on specified connotations:
+</p>
+
+<ul>
+<li>0x1e is always the first / root page and contains a special format. 0x1f is skipped before pages start at 0x20</li>
+
+<li>On the image I analyzed 0x20, 0x21, and 0x22 were individual pages containing various attributes and tables w/ records.</li>
+
+<li>0x28-0x38 were shadow pages of 0x20, 0x21, 0x22</li>
+
+<li>0x2c0-0x2c3 seemed to represent a single table with various pages being the table, continuation, and shadow pages. The records in this table have keys w/ a unique id of some sort as well as cluster id's and checksum so this could be the <b>object table</b> described in [1]</li>
+
+<li>0x2c4-0x2c7 represented another table w/ shadow pages. The records in this table consisted of two 16 byte values, both which refer to the keys in the 0x2c0 tables. If those are the object id's this could potentially be the <b>object tree</b>.</li>
+
+<li>0x2c8 represents yet another table, possibly a system table due to it's low virtual page number (01)</li>
+
+<li>0x2cc-0x2cf - consisted of a metadata table and it's shadow pages, the 'ReFs Volume' volume name could be seen in the UTF there.</li>
+</ul>
+
+<p>
+The rest of the pages were either filled with 0's or non-metadata pages containing content. Of particular note is pages 0x2d0 - 0x2d7 containing the upcase table (as seen in ntfs).
+</p>
+
+<h2>Parser</h2>
+
+<p>
+I've thrown together a simple ReFS parser using the above assumpions and threw it upon github via a <a href="https://gist.github.com/movitto/866de4356f56a3b478ca">gist</a>.
+</p>
+
+<p>
+To utilize download it, and run it using ruby:
+</p>
+
+<pre>
+ruby resilience.rb -i foo.image --offset 123456789 --table --tree
+</pre>
+
+<p>
+You should get output similar to the following:
+</p>
+
+<%= link_to image_tag("resilience.png", :style => "width: 75%"), image_path("resilience.png") %>
+
+<p>
+Of course if it doesn't work it could be because there are differences between our images that are unaccounted for, in which case if you drop me a line we can tackle the issue together!
+</p>
+
+
+<h2>Next Steps</h2>
+
+<p>
+The next steps on the analysis roadmap are to continue diving into the page allocation and addressing mechanisms, there is most likely additional mechanisms to navigate to the critical data structures immediately from the first sector or page 0x1e (since the address of that is known / fixed). Also continuing to investigate each page and analyzing it's contents, especially in the scope of various file and system changes should go a long ways to revealing semantics.
+</p>
