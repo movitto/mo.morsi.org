@@ -21,6 +21,7 @@
     <%= stylesheet_link_tag "site" %>
     <%= javascript_include_tag "site" %>
     <%= javascript_include_tag "matrix" %>
+    <%= javascript_include_tag "dwitter" %>
 
     <!-- set custom stylesheets per page -->
     <% [current_page.data.stylesheets,
@@ -31,14 +32,18 @@
     <%= favicon_tag 'images/favicon.png' %>
   </head>
   <body>
+    <!-- global nav -->
     <%= partial "nav" %>
+
+    <!-- global background -->
     <canvas id="matrix_output"></canvas>
 
-    <!-- XXX include article container on those pages -->
+    <!-- XXX include article container/date/title on specific article pages -->
     <% if current_page.page_id =~ /articles\/.*/ %>
       <div class="article">
         <%= partial :article_date, :locals => {:article => current_page} %>
         <h1><%= current_page.title %></h1>
+
         <%= yield %>
       </div>
 
