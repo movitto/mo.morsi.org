@@ -3,14 +3,135 @@ title: Presentations
 ---
 
 <div class="article">
-  Presentations
+  <div id="presentations_content" style="float: left; width: 40%">
+    <h2>Presentations</h2>
+    <p>
+    <b>Note</b>: <i>The following is only a subset of the presentations I have given<br/>
+    (those which I have found content for)</i>
 
-  <canvas id="presentation_canvas" width="1450" height="500"></canvas>
+    <style>
+      ul li{
+        margin-bottom: 10px;
+      }
+    </style>
+
+    <ul style="list-style-type: circle;">
+      <li>
+        <%= link_to "The Guild: The Rise and <strike>Fall</strike>Future Of Syracuse's Hackerspace",
+                    "presentations/bsides-guild/pres.html" %><br/>
+        BSides ROC 2017
+      </li>
+      <li>
+        <%= link_to "Messin' With HTML5: WebGL",
+                    "presentations/html5/index.html" %><br/>
+        Syracuse Innovators Guild ('15) &amp; Syracuse Web Meetup ('16)
+      </li>
+      <li>
+        <%= link_to "Omega: A Universe Over IP",
+                    "presentations/omega" %><br/>
+        BSides ROC 2015
+      </li>
+      <li>
+        <%= link_to "HopeX Lighting Talks (Track Organization)",
+                    "presentations/hopex/schedule.odt" %><br/>
+        HopeX (2014)
+      </li>
+      <li>
+        <%= link_to "Omega: A Universe Over IP",
+                    "presentations/notacon" %><br/>
+        <%= link_to "NotACon 11 (2014)",
+                    "https://www.youtube.com/watch?v=OmbYhJb8S6k" %>
+      </li>
+      <li>
+        <%= link_to "JSON-RPC",
+                    "" %><br/>
+        Google Summer of Code Mentors Summit
+      </li>
+      <li>
+        <%= link_to "JSON-RPC using RJR",
+                    "presentations/brno-ruby-jsonrpc/index.html" %><br/>
+        Brno Ruby Users Group
+      </li>
+      <li>
+        <%= link_to "Aeolus: Deploying Across Clouds the Open Source Way",
+                    "presentations/olf-slides.pdf" %><br/>
+        Ohio LinuxFest
+      </li>
+      <li>
+        <%= link_to "Ruby on Rails",
+                    "presentations/rails-presentation.odp" %><br/>
+        Syracuse Innovators Guild
+      </li>
+      <li>
+        <%= link_to "Opening Up Cloud Computing With Aeolus",
+                    "presentations/engineering-expo/engineering-expo.ppt" %><br/>
+        CNY Engineering Expo 2011
+      </li>
+      <li>
+        <%= link_to "Aeolus: Open Cloud Computing",
+                    "" %><br/>
+        FudCon Blacksburg ('11)
+      </li>
+      <li>
+        <%= link_to "SIG Lightning Talks",
+                    "presentations/sig-lightning-talks.odp" %><br/>
+        Syracuse Innovators Guild / Syracuse Tech Garden
+      </li>
+      <li>
+        <%= link_to "Ruby",
+                    "presentations/syrlug-ruby.odp" %><br/>
+        Syracuse Linux Users Group
+      </li>
+      <li>
+        <%= link_to "Opening Up Cloud Computing With Aeolus",
+                    "presentations/fosscon.odp" %><br/>
+        Fosscon '11
+      </li>
+      <li>
+        <%= link_to "DeltaCloud",
+                    "presentations/fudcon09.odp" %><br/>
+        FudCon Toronto ('09)
+      </li>
+      <li>
+        <%= link_to "GUI Programming In Python",
+                    "presentations/syrlug-pygtk/presentation/" %><br/>
+        Syracuse Linux Users Group
+      </li>
+      <li>
+        <%= link_to "Into To Virtualization",
+                    "presentations/syrlug-virt.odp" %><br/>
+        Syracuse Linux Users Group
+      </li>
+      <li>
+        <%= link_to "Snap System Snapshotter",
+                    "presentations/snap.pdf" %><br/>
+        Masters Thesis
+      </li>
+      <li>
+        <%= link_to "Rand Instruction Set Emulation to Distrupt Binary Code Injection Attacks",
+                    "presentations/randinst.ppt" %><br/>
+        Paper Analysis
+      </li>
+      <li>
+        <%= link_to "The BlueTooth Control Profile",
+                    "presentations/bcp.odp" %><br/>
+        Senior Design Project
+      </li>
+      <li>
+        <%= link_to "College Notes &amp; Study Sheets",
+                    "" %>
+      </li>
+    </ul>
+  </div>
+
+  <canvas id="presentation_canvas" width="750" height="500" style="float: right; margin-right: 75px; margin-top: 100px;"></canvas>
 
   <script type="text/javascript">
     $(document).ready(function(){
       var d = dwitter("#presentation_canvas");
-          d(d.tunnel);
+          d(d.wire_ball);
     });
   </script>
+
+  <div style="clear: both"></div>
 </div>

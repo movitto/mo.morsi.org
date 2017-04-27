@@ -1,8 +1,12 @@
 var dwitter = function(canvas){
-  /// Implemented main loop from https://www.dwitter.net
+  ///// Main loop from https://www.dwitter.net
+
   var S = Math.sin;
   var C = Math.cos;
-  /// var R = TODO
+  var R = function(r,g,b,a) {
+    a = a === undefined ? 1 : a;
+    return "rgba("+(r|0)+","+(g|0)+","+(b|0)+","+a+")";
+  };
 
   var c = $(canvas)[0];
   var x = c.getContext("2d");
@@ -17,10 +21,11 @@ var dwitter = function(canvas){
     }, 1000/60);
   }
 
+  //////////////////////////////////
   ///// Various effects from dwitter
 
   _dwitter.tunnel = function(t){
-    c.width=2e3;for(i=0;s=300,a=s/(s-(t+i*s/900)%s),i<900;i++){x.strokeRect(999-a*(1+S(t))/2,250-a*(1+C(t*2))/2,a,a)}
+    c.width=1000;for(i=0;s=300,a=s/(s-(t+i*s/900)%s),i<900;i++){x.strokeRect(500-a*(1+S(t))/2,250-a*(1+C(t*2))/2,a,a)}
   }
 
   _dwitter.sea = function(t){
@@ -35,7 +40,7 @@ var dwitter = function(canvas){
   }
 
   _dwitter.wire_ball = function(t){
-    c.width^=0;r=240;for(θ=44/7;θ>0;θ-=.7/(C(t)+1))for(φ=p=11/7;φ>-p;φ-=1/r)x.lineTo((C(t)*S(φ)-S(t)*C(φ)*S(θ))*r+r*2,C(φ)*C(θ)*r+r);x.stroke()
+    c.width^=0;r=200;for(θ=44/7;θ>0;θ-=.7/(C(t)+1))for(φ=p=11/7;φ>-p;φ-=1/r)x.lineTo((C(t)*S(φ)-S(t)*C(φ)*S(θ))*r+r*2,C(φ)*C(θ)*r+r);x.stroke()
   }
 
   _dwitter.smileys = function(t){
@@ -52,6 +57,10 @@ var dwitter = function(canvas){
       x.fillRect(X=-400+i*100+S(t+i)*300, 200 + 45*C(t+i), 50, 200);
       x.fillStyle=`hsl(`+(X/20+t*20)+`,80%,50%)`;
     }
+  }
+
+  _dwitter.psychadelic = function(t){
+    e=2e3;for(i=e;--i;)x.fillStyle=R((d=i%16*119)%256,d/1.4%256,d/7%256),m=i*t/100,n=10*i/200,x.fillRect(n*S(m)*30+500,n*C(m)*30+250,20,20);
   }
 
   return _dwitter;

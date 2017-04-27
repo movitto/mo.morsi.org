@@ -1,0 +1,5 @@
+<span class="article_tags">
+  <%= article.tags.collect { |t|
+        link_to t, tag_path(t)
+      }.join("&nbsp;") %>
+</span>

@@ -38,10 +38,16 @@
     <!-- global background -->
     <canvas id="matrix_output"></canvas>
 
+    <!-- global tag widget -->
+    <%= partial "tag_widget" %>
+
+<!-- search box (google based) -->
+
     <!-- XXX include article container/date/title on specific article pages -->
     <% if current_page.page_id =~ /articles\/.*/ %>
       <div class="article">
         <%= partial :article_date, :locals => {:article => current_page} %>
+        <%= partial :article_tags, :locals => {:article => current_page} %>
         <h1><%= current_page.title %></h1>
 
         <%= yield %>
