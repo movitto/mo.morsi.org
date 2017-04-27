@@ -1,6 +1,7 @@
 ---
 title: JRuby / Fedora woes
 date: 2009-12-16
+tags: ruby, fedora, jruby
 ---
 
 I spent a little while looking into the current state of <a href="http://jruby.org">JRuby</a> in <a href="http://fedoraproject.org/">Fedora</a>. It turns out it's not so good, the <a href="https://admin.fedoraproject.org/pkgdb/packages/name/jruby?_csrf_token=cbab9bc194abd9bb3940b38a88759fb5f5eae142">JRuby</a> <a href="http://cvs.fedoraproject.org/viewvc/rpms/jruby/">package</a> itself has been orphaned and is no longer available starting in F12, as well as several of its Java dependencies, not to mention recent versions of JRuby have added several more dependencies which have yet to be packaged. All in all the following software needs to be packaged and accepted into Fedora before JRuby can be:

@@ -1,6 +1,7 @@
 ---
 title: Difference between delete and destroy in ActiveRecord
 date: 2009-11-03
+tags: ruby, rails
 ---
 
 This is well documented, but I keep running into the same issue and never learn from my mistakes. ;-)

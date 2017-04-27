@@ -1,6 +1,7 @@
 ---
 title: Fedora / JRuby Update
 date: 2010-02-03
+tags: fedora, jruby, ruby
 ---
 
 Just finished unorphaning, packaging,  and submitting <a href="http://jruby.org">JRuby</a> for <a href="https://bugzilla.redhat.com/show_bug.cgi?id=561484">Fedora</a>. There were 13 Java packages (JRuby and 12 dependencies) that had to be updated and submitted, and getting them all in might take some time, but what's there is working, most packages build on Koji fine and the rest depend on other packages in the set that have to make it into the repos first. I've done quite a bit of Java work in the past (RIP <a href="http://sourceforge.net/projects/mrlogistics/">Mr. Logistics</a>!) but wouldn't say I'm a guru so if something is amiss feel free to comment in Bugzilla.

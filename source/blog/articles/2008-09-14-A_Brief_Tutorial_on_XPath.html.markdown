@@ -1,6 +1,7 @@
 ---
 title: A Brief Tutorial on XPath
 date: 2008-09-14
+tags: xpath
 ---
 
 Since its been over a month since my last post, I feel one is long overdue. Today's entry is about <a href="http://en.wikipedia.org/wiki/XPath_1.0">XPath</a>, a language that allows for the traversal / retrieval of nodes in an XML document (note that at the time of writing this <a href="http://en.wikipedia.org/wiki/XPath_2.0">XPath 2.0</a>; which adds additional type logic, operators, among other things; is now <a href="http://www.w3.org/TR/xpath20/">an official standard</a>, but I will not dive into the additional features in this entry). 

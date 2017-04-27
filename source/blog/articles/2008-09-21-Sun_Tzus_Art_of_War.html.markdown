@@ -1,6 +1,7 @@
 ---
 title: Sun Tzus Art of War
 date: 2008-09-21
+tags: book review
 ---
 
 I was bored so I read Sun Tzu's "Art of War", quick read <a href="http://www.chinapage.com/sunzi-e.html">found here</a> and came across some cool / profound quotes. Enjoy: (after the <a href="http://mohammed.morsi.org/blog/?q=node/243">jump</a>)

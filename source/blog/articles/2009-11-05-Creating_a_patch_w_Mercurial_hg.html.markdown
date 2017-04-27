@@ -1,6 +1,7 @@
 ---
 title: Creating a patch w/ Mercurial hg
 date: 2009-11-05
+tags: mercurial
 ---
 
 Although I was a slow adopter, I am now an adamant git user. I won't go into all the details here, but git is a great distributed version control system (vcs), light years ahead of the last generation (cvs, svn), and honestly if it isn't too cost prohibitive, I would greatly recommend switching to it (the Linux kernel tree was moved to git, so I can't really see why anyone else wouldn't be able to).

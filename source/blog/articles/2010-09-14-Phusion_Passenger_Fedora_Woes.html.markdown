@@ -1,6 +1,7 @@
 ---
 title: Phusion Passenger / Fedora Woes
 date: 2010-09-14
+tags: fedora, passenger, ruby
 ---
 
 <img src="http://www.modrails.com/phusion_template/logo-trans.png" style="float: left;" />The <a href="http://www.modrails.com/">Phusion Passenger</a> <a href="http://fedoraproject.org/">Fedora</a> package <a href="https://bugzilla.redhat.com/show_bug.cgi?id=470696">submission</a> has been open for nearly two years running. Many various issues have been resolved since the original submission (many thanks to all those involved for their hard work), but there is one last major blocker which is proving to be a headache for this process.

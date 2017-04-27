@@ -1,6 +1,7 @@
 ---
 title: Setting up VNC
 date: 2009-12-15
+tags: vnc
 ---
 
 Virtual Network Computing (VNC) allows you to access and control a graphical desktop running on one machine from another. This permits you to seamlessly use a desktop environment and graphical applications while not having to sit infront of the physical keyboard / mouse attached to a computer. 

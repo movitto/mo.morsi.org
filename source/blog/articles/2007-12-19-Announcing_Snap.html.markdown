@@ -1,6 +1,7 @@
 ---
 title: Announcing Snap!
 date: 2007-12-19
+tags: snap
 ---
 
 In my spare time over the last few months, I've been working on a project which I dub 'Snap'. Snap is my attempt at replicating the functionality of 'Windows System Restore' on Linux. As the name indicates, Windows System Restore backs up all the important files, libraries, and registry entries on Windows for future restoration. To accomplish this in Linux, the underlying package management system is used. Snap stores which packages have been installed on the machine, and any files not tracked by the package management system or have been modified since installation.

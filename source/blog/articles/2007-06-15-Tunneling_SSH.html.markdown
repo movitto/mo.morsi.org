@@ -1,6 +1,7 @@
 ---
 title: Tunneling SSH
 date: 2007-06-15
+tags: ssh
 ---
 
 (I'm in NYC working for Red Hat right now and am insanely busy. I'm having a great time and will describe everything in my blog in the near future).

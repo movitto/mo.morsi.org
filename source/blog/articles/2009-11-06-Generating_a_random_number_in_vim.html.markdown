@@ -1,6 +1,7 @@
 ---
 title: Generating a random number in vim
 date: 2009-11-06
+tags: vim
 ---
 
 In the department of things I've spent far too much time working on, I just wrote a vim script that allows you to automatically insert a random number into the file you're editing. It probably could use a little work, but does what I need it to do (easily generate random numbers for test fixtures). To use it yourself, add the following to your ~/.vimrc:

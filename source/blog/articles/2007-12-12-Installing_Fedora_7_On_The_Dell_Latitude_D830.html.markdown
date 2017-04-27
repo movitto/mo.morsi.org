@@ -1,6 +1,7 @@
 ---
 title: Installing Fedora 7 On The Dell Latitude D830
 date: 2007-12-12
+tags: fedora
 ---
 
 (Standard Disclamer: I am not responsible for any changes you do to your system and their results/outcomes, follow this guide at your own risk!)

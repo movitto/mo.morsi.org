@@ -1,6 +1,7 @@
 ---
 title: FUDCon Toronto 2009
 date: 2009-12-08
+tags: fudcon, conference
 ---
 
 Just got back from the <a href="http://fedoraproject.org/wiki/FUDCon:Toronto_2009">Fedora Users and Developers Conference</a> (FUDCon) in Toronto ON this past weekend. There I gave an introductory talk on the field of Cloud Computing and discussed the current project I'm hacking on @RH, <a href="http://deltacloud.org">deltacloud</a>. The presentation went well and I got alot of great feedback / garnered some more interest in the project. I uploaded the slides <a href="http://mohammed.morsi.org/files/fudcon09.odp">here</a> for anyone that's interested.

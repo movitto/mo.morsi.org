@@ -1,7 +1,7 @@
 ---
 title: Compiling / Playing NetHack 3.6.0 on Fedora
 date: 2017-04-09
-tags: nethack, gcc, compiler
+tags: nethack, gcc, compiler, fedora
 ---
 
 The following are the simplest instructions required to compile <a href="http://nethack.org/">NetHack</a> 3.6.0 for <a href="https://getfedora.org/">Fedora 25</a>.

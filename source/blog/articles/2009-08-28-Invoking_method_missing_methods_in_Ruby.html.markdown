@@ -1,6 +1,7 @@
 ---
 title: Invoking method_missing methods in Ruby
 date: 2009-08-28
+tags: ruby
 ---
 
 So here's another quick Ruby tip. <a href="http://www.ruby-doc.org/core/classes/Kernel.html#M005925">Kernel.method_missing</a> is a way to catch all invocations to methods in whatever scope you want that aren't defined. While discouraged from widespread use, eg since it can be hard to debug and can lead to sloppy programming, it does have legitimate / good use cases, for example ActiveRecord uses it to automatically map methods to database columns without requiring developers to explicitly write a getter/setter for each.
@@ -18,4 +19,4 @@ Unfortunately this will be the case for "methods" handled by method_missing. To 
 <pre>
 object.send(:methodname, parameters)
 </pre>
-<!--break-->
+<!--break-->

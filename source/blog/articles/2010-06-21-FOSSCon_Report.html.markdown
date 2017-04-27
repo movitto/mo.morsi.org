@@ -1,6 +1,7 @@
 ---
 title: FOSSCon Report
 date: 2010-06-21
+tags: fosscon, conference
 ---
 
 <img src="http://www.fosscon.org/images/banner.png" style="float: right; padding-left: 5px" width="300px" height="100px" />

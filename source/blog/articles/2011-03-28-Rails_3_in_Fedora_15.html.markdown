@@ -1,6 +1,7 @@
 ---
 title: Rails 3 in Fedora 15
 date: 2011-03-28
+tags: rails, ruby, fedora
 ---
 
 <img src="http://rubyonrails.org/images/rails.png" style="float: left; padding-right: 15px; padding-top: 30px; height: 100px;"/>

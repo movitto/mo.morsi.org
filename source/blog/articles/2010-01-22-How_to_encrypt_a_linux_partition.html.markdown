@@ -1,6 +1,7 @@
 ---
 title: How to encrypt a linux partition.
 date: 2010-01-22
+tags: linux, crypto
 ---
 
 Essentially the goal for this article is to setup a partition under Linux under which all data that is stored will be encrypted and 'inaccessible' to those without the correct key (course with all the password-cracking software out there today, who knows what really is secure). This is actually a very simple task, with instructions scattered over the Internet, so I just simply consolidated the most useful directions I found into the guide below:

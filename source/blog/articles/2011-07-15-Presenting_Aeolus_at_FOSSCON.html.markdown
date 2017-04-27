@@ -1,6 +1,7 @@
 ---
 title: Presenting Aeolus at FOSSCON
 date: 2011-07-15
+tags: aeolus, fosscon, conference
 ---
 
 <img src="http://www.fosscon.org/images/banner.png" style="width: 700px; height: 150px;" />

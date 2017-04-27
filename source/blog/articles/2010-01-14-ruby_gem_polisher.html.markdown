@@ -1,6 +1,7 @@
 ---
 title: ruby gem polisher
 date: 2010-01-14
+tags: ruby, rubygems, polisher
 ---
 
 For anyone that missed it Pavol Rusnak had an excellent blog <a href="http://stick.gk2.sk/blog/2010/01/gemcutter-opensuse-build-service-cooperation-idea/">post</a> on Fedora Planet regarding the current state of rubygems, specifically with gemcutter becoming the <a href="http://update.gemcutter.org/2009/10/26/transition.html">official</a> rubygems source and the introduction of the new gemcutter webhook <a href="http://update.gemcutter.org/2009/10/26/transition.html">API</a> to register callbacks to be invoked on gem updates. Also discussed is <a href="http://rubyforge.org/projects/gem2rpm/">gem2rpm</a>, which automatically converts a gem to a rpm specfile / srpm, and the need of a tool to bind those two components together.

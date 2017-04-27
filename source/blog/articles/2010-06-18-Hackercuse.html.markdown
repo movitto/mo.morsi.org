@@ -1,6 +1,7 @@
 ---
 title: Hackercuse
 date: 2010-06-18
+tags: hackerspace
 ---
 
 <img src="http://hackerspaces.org/images/3/35/WikiLogo.png" style="float: right; padding-left: 5px;" />

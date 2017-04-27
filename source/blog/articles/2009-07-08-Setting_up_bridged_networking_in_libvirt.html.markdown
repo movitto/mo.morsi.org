@@ -1,6 +1,7 @@
 ---
 title: Setting up bridged networking in libvirt
 date: 2009-07-08
+tags: libvirt, virtualization
 ---
 
 This topic always confused the hell out of me, as whenever I configured networks in libvirt I'd almost always end up with a broken configuration, one where I external network access was unavailable, or worse...

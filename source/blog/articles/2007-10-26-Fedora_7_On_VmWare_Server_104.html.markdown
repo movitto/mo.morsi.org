@@ -1,6 +1,7 @@
 ---
 title: Fedora 7 On VmWare Server 1.0.4
 date: 2007-10-26
+tags: fedora
 ---
 
 (The Dell Latitude Fedora 7 install guide is coming in the near future, I promise)

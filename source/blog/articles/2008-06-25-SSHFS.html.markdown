@@ -1,6 +1,7 @@
 ---
 title: SSHFS
 date: 2008-06-25
+tags: ssh, sshfs
 ---
 
 There are times every person discovers something simple that makes life so much easier that they wonder how they lived without it. SSHFS is a very simple and subtly-named utility that allows you to mount files systems via ssh. Since ssh supports the file system operations anyways, using sshfs is trivial, nothing has to be done on the server side, and the client merely needs to install sshfs (eg yum install sshfs) and run

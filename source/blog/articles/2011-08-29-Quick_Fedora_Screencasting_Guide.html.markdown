@@ -1,6 +1,7 @@
 ---
 title: Quick Fedora Screencasting Guide
 date: 2011-08-29
+tags: fedora, screencasting
 ---
 
 Here is how I orchestrated my recent <a href="http://mo.morsi.org/blog/node/343">screencast</a> on Fedora 15:

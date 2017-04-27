@@ -1,6 +1,7 @@
 ---
 title: XML RPC Using Ruby On Rails
 date: 2007-03-02
+tags: xmlrpc, ruby, rails
 ---
 
 <p align="justify">Just wanted to link to a wiki article I wrote as part of my internship at Red Hat. When rewriting the internal Errata Tool using the Ruby on Rails framework, one of my tasks involved porting the XMLRPC server which the errata tool provides to other applications that use errata (such as bugzilla). After looking into the topic, and writing the required web services, I wrote the following article summarizing what I learned:

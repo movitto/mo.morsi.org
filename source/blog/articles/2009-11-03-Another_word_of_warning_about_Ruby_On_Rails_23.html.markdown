@@ -1,6 +1,7 @@
 ---
 title: Another word of warning about Ruby On Rails 2.3
 date: 2009-11-03
+tags: ruby, rails
 ---
 
 I'm not sure if this was introduced in 2.3 or a prior version but today several of us working on the oVirt project discovered that Rails is now _requiring_ i18n localization translations for alot of stuff, namely the activerecord model validation errors. 

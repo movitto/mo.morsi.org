@@ -1,6 +1,7 @@
 ---
 title: Backups Via Dirvish
 date: 2010-01-22
+tags: linux, backups
 ---
 
 <a href="http://www.dirvish.org/">Dirvish</a> is an easy to use backup system based on rsync. Having recently setup an external encrypted usb drive to store backups, mounted at /mnt/backup1, I setup backups for target directories on my local system using Dirvish (of course, if it were not in early development, I would use <a href="http://morsi.org/projects/snap/">Snap</a> but alas its too early to trust critical system operations to it). The entire process is fairly easy, there being two files which you need to modify, as well as creating a cron job to run dirvish daily. I'll keep it brief and simple here, use <a href="http://wiki.edseek.com/howto:dirvish">this great guide</a> if you want more info. Before we begin, recognize a 'bank' is a directory where multiple vaults are stored. A 'vault' holds the configuration and the actual snapshots of the filesystem(s).

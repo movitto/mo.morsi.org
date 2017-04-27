@@ -1,6 +1,7 @@
 ---
 title: LDAP Directory Server
 date: 2008-04-17
+tags: ldap
 ---
 
 Several years back, during my job at the Living School Book, I was tasked to admin a small LDAP server for a small project we were working on. It was all new too me at the time, and I took a while to learn it, writing up an article in the process. Lo and behold my time spent was worthwhile as I've been helping my current coworkers get up to speed on how LDAP works and is administrated. To help out, <a href="http://sean.keesler.org/">a former coworker (and good friend)</a> helped me digg up this ancient article I wrote (alright only a few years old and everything is still relevant) on getting started with LDAP. Enjoy!

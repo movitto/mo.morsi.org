@@ -1,6 +1,7 @@
 ---
 title: More ActiveRecord Funkiness
 date: 2009-10-27
+tags: ruby, rails
 ---
 
 Another caveat to look out for when using activerecord, especially for those of you who are using <a href="http://api.rubyonrails.org/classes/ActiveRecord/Acts/NestedSet/ClassMethods.html">the nested set</a> module and have <a href="http://github.com/rails/rails/commit/0d922885fb54c19f04680482f024452859218910">optimistic locking</a> turned on (which I'm guessing by the timestamp on that patch is making its ways to the Linux repos just about now).

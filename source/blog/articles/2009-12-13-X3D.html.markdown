@@ -1,6 +1,7 @@
 ---
 title: X3D
 date: 2009-12-13
+tags: x3d
 ---
 
 <a href="http://www.web3d.org/x3d/">X3D</a> (<a href="http://en.wikipedia.org/wiki/X3D">wikipedia</a>) is one of those standards that is going to become very popular because it has a huge feature set or fail into obscurity because it is too large and complex to use. Regardless, I've just discovered the specification and have been reading about it / playing around w/ a few implementations over the last few days and I'm pretty impressed.

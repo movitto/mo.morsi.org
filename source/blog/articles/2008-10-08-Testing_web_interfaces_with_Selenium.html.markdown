@@ -1,6 +1,7 @@
 ---
 title: Testing web interfaces with Selenium
 date: 2008-10-08
+tags: selenium, testing
 ---
 
 So not too long ago I wrote and committed some Selenium tests for oVirt which can be found <a href="http://git.et.redhat.com/?p=ovirt-server.git;a=blob;f=src/test/functional/interface_test.rb"> here</a> and wrote some info up on the topic, <a href="https://www.redhat.com/archives/ovirt-devel/2008-August/msg00251.html"> here</a>. I've since recieved a few emails asking about the topic so I figure I'd share some introductory points.

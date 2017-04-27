@@ -1,6 +1,7 @@
 ---
 title: Aeolus on Fedora - One Simple Command to Deploy to any Cloud Provider
 date: 2011-08-25
+tags: fedora, aeolus, cloud
 ---
 
 Try this one out.

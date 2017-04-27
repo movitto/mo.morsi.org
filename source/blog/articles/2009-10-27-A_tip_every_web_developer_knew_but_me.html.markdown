@@ -1,6 +1,7 @@
 ---
 title: A tip every web developer knew but me
 date: 2009-10-27
+tags: webdev
 ---
 
 Funny how the simplest things will slip by you (or at least you'll forget and have to remind yourself from time to time).

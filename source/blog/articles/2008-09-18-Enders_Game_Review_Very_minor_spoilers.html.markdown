@@ -1,6 +1,7 @@
 ---
 title: Enders Game Review Very minor spoilers
 date: 2008-09-18
+tags: book review
 ---
 
 Ender's Game is a Science Fiction novel by Orson Scott Card about Andrew "Ender" Wiggin, an almost-super-human child in terms of shear mental ability and military strategy. Ender is selected at an early age to enroll in an elite military training program in order to save humanity from an alien race of insect-like creatures known as "buggers". Throughout the book Ender is put through a mental hell, constantly pushed beyond the previously thought human limits to prove his self worth to save humanity from destruction.

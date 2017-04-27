@@ -1,6 +1,7 @@
 ---
 title: pyGTK and Threading
 date: 2007-12-05
+tags: pygtk
 ---
 
 I am in the process of adding a gnome gui interface to my soon-to-be released project. Incorporating Python, GTK, and Glade, I've run into several quirky issues relating to running threads and sharing access to GTK widgets. Often I will see a worker thread hanging until the window is closed, at which point it resumes operation, or a more serious error:

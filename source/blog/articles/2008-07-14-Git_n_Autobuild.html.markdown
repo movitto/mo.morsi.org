@@ -1,6 +1,7 @@
 ---
 title: Git  n Autobuild
 date: 2008-07-14
+tags: git
 ---
 
 So over the last week or so, I've been having a fun time learning all the subtle issues w/ autobuild as I try to setup a nightly build cycle for the oVirt team. Most of the issues stem from the fact that we're primarily developing on a non-master GIT branch and oVirt has quite a few dependencies which makes setting up a consistent build environment tricky. Not only that, but since I'm on a team working on an active project with lots of developers, I can't exactly commit autobuild.sh a million times trying to get it to work (more after the jump). Furthermore, autobuild will refuse to build unless it has checked out source code (regardless of the value of the 'cache' config parameter) thus it was not possible to use autobuild to checkout the source code once, and then modify and build the code without checking out a new copy / overwriting changes. Luckily GIT is a great distributed version control system which allows you to perform clones / pulls from a local filesystem-directory containing a git-repository (eg no setting up httpd or git-daemon needed (not that its hard)). Thus I easily cloned the oVirt repo from where its hosted on git.et.redhat.com, and pointed auto-build to clone and build from my local copy (see the git-clone man page for help with both these tasks). 

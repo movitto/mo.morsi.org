@@ -1,6 +1,7 @@
 ---
 title: oVirt use case to look out for
 date: 2009-10-27
+tags: ovirt
 ---
 
 Sometimes all you need is a good nights rest, I spent a considerable amount of time on this problem yesterday only to realize the solution was very simple. 

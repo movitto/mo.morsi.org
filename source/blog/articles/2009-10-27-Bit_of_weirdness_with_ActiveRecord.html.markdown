@@ -1,6 +1,7 @@
 ---
 title: Bit of weirdness with ActiveRecord
 date: 2009-10-27
+tags: ruby, rails
 ---
 
 Figure I'd pass on a bit of weirdness concerning Ruby's <a href="http://ar.rubyonrails.org/">ActiveRecord</a>. Apparently when two models class are associated via rails the association takes place through a custom ActiveRecord association class, eg if a host model has many instances of the nic model, host.nics will be an instance of ActiveRecord::Associations::AssociationProxy and _not_ a mere array of nics. AssociationProxy acts very similarily to an array, providing the expected functionality to get/set associated classes.

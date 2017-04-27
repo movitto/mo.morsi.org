@@ -1,6 +1,7 @@
 ---
 title: Lesser Affero GPLv3
 date: 2009-08-13
+tags: legaleese
 ---
 
 Before I begin, I am not a lawyer and this is NOT to be taken as legal advice. No actions should be taken based on this blog post alone and I take no responsibility for any outcomes which may result from doing so.

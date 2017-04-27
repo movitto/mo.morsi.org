@@ -1,6 +1,7 @@
 ---
 title: Hardware Disaster
 date: 2011-08-15
+tags: hardware
 ---
 
 Haven't had a week like this one for as long as I remember.

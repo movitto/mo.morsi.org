@@ -1,6 +1,7 @@
 ---
 title: Installing Fedora 15 on the Thinkpad T520
 date: 2011-08-29
+tags: fedora, hardware
 ---
 
 It's been a <a href="http://mo.morsi.org/blog/node/2">while</a> since I've <a href="http://mo.morsi.org/blog/node/210">done</a> a Linux hardware review. Having just got a <a href="http://shop.lenovo.com/us/notebooks/thinkpad/t-series/t520?cid=us|semd|se|google|K111190|Lenovo_T520|IIP_NE_Lenovo_Thinkpad|100004&ne_ppc_id=1019&ne_key_id=11024135&ne_sadid=13715092904">Lenovo Thinkpad T520</a>, figure it's about time for another :-)

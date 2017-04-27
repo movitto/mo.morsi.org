@@ -1,6 +1,7 @@
 ---
 title: RXSD
 date: 2009-12-13
+tags: xsd, rxsd, ruby
 ---
 
 Just released <a href="http://projects.morsi.org/wiki/RXSD">RXSD</a> (via <a href="http://github.com/movitto/RXSD">github</a>), a XSD <-> Ruby classes translator that makes use of Ruby's runtime introspection / reflection mechanisms to convert XML Schema Definitions to Ruby classes on the fly. Also supported is generating string Ruby class definitions (to be subsequently written to the filesystem) as well as a XSD metadata library / extendable builder interface to add output support for whatever language you need (python, c++, java, xml and other various formats, etc). 

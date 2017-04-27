@@ -1,6 +1,7 @@
 ---
 title: More Linux Hardware Fun
 date: 2008-06-06
+tags: hardware, linux
 ---
 
 I love Linux but hate when things don't just 'work out of the box' (definitely not a Linux-only problem though). Well, recently I bought a PC off ebay to use for a media center I'm setting up and ran into some woes with the Ethernet card. I always expect wireless problems but it has been years since I had an issue with a wired network card. Alas, after quite a bit of Googling I found my answer ( <a href="https://bugs.launchpad.net/ubuntu/+source/linux-source-2.6.15/+bug/14421">here</a> ) and figured I'd share it incase anyone else was wondering. 

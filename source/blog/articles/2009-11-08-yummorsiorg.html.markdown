@@ -1,6 +1,7 @@
 ---
 title: yum.morsi.org
 date: 2009-11-08
+tags: yum
 ---
 
 I've just tossed up two new morsi.org subdomains. <a href="http://projects.morsi.org">projects.morsi.org</a> is my new hosting space for projects I'm working on. <a href="http://yum.morsi.org">yum.morsi.org</a> is a <a href="http://yum.baseurl.org/">yum</a> repository setup for my rpms, which right now only has <a href="http://projects.morsi.org/Romic">Romic</a> but I will be putting up <a href="http://projects.morsi.org/Motel">Motel</a> soon and more in the future. Putting it to use is as simple as creating /etc/yum.repos.d/morsi-org.repo with the following:

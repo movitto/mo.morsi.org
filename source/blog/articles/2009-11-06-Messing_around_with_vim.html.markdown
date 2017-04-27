@@ -1,6 +1,7 @@
 ---
 title: Messing around with vim
 date: 2009-11-06
+tags: vim
 ---
 
 So I've been playing around with vim to try to better my usage of the text editor and have found some very interesting features / plugins and one annoying pitfall which I want to share. 

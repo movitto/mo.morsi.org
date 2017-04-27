@@ -1,6 +1,7 @@
 ---
 title: Word of warning about rails 2.3
 date: 2009-11-03
+tags: ruby, rails
 ---
 
 Rails in Fedora was upgraded to 2.3 in F11. When working on <a href="http://ovirt.org">oVirt</a> today, I discovered that changes to my templates were not being served to the user until I restarted mongrel/rails. Quickly searching around for the issue, I stumbled upon the Rails 2.3 <a href="http://guides.rubyonrails.org/2_3_release_notes.html">changelog</a>, particularly <a href="http://guides.rubyonrails.org/2_3_release_notes.html#a-note-about-template-loading">this section</a> which states:

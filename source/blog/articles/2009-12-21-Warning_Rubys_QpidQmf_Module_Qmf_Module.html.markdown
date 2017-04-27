@@ -1,6 +1,7 @@
 ---
 title: Warning - Rubys Qpid - -Qmf Module != Qmf Module
 date: 2009-12-21
+tags: ruby, qmf, apache
 ---
 
 Something to look out for for anyone interested in using Apache QMF.

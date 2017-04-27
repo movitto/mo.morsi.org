@@ -1,6 +1,7 @@
 ---
 title: Installing Fedora Core 6 -- Zod -- on the Acer Aspire 5102WLMI Notebook
 date: 2007-10-26
+tags: fedora
 ---
 
 (Standard Disclamer: I am not responsible for any changes you do to your system and their results/outcomes, follow this guide at your own risk!)

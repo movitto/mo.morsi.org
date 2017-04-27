@@ -1,6 +1,7 @@
 ---
 title: Learning GNU Autotools
 date: 2008-03-10
+tags: autotools
 ---
 
 Well in my first blog post since January 1st, I will be discussing and sumarizing what I learnt over the past few days relating to the GNU Autotools, specifically autoconf and automake. Having been a C++ fan since I learned it (roughly nine years ago, it was my first language), I never got around to learning the GNU build system (seeing as there is not much use in web development). Regardless, I set out to learn it as I need to incorporate it into my new currently-top-secret project. Note, I am writing this as I learn it and am no expert yet. 

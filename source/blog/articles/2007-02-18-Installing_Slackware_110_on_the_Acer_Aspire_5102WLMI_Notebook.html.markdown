@@ -1,6 +1,7 @@
 ---
 title: Installing Slackware 11.0 on the Acer Aspire 5102WLMI Notebook
 date: 2007-02-18
+tags: linux, slackware, hardware
 ---
 
 (Standard Disclamer: I am not responsible for any changes you do to your system and their results/outcomes, follow this guide at your own risk!)

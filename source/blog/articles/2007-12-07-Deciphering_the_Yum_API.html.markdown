@@ -1,6 +1,7 @@
 ---
 title: Deciphering the Yum API
 date: 2007-12-07
+tags: yum
 ---
 
 My current side project (to be announced/released soon) involves using the Yum Python API. Unfortunately I have yet to find a good tutorial or guide, though there are many apps which use the Yum API such as yumex, so I figure I'd share some knowledge about my findings. Note that I am using Yum version 3.2.7 and everything presented here is derived from my studying of the code.

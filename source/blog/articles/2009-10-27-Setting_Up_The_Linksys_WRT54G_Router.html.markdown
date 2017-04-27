@@ -1,6 +1,7 @@
 ---
 title: Setting Up The Linksys WRT54G Router
 date: 2009-10-27
+tags: hardware
 ---
 
 My brother finally got fed up with the substandard wifi reception which he was getting with our Gigabyte router (fyi never buy routers from Gigabyte or DLink, as they all (like most sub-$100 routers) are useless piles of junk which need constant attention). He bought a cheap Linksys WRT54G router off Ebay and guess who had to set it up :-)

@@ -1,6 +1,7 @@
 ---
 title: Rails 2 -> 3 Case Study - Deltacloud
 date: 2010-12-16
+tags: rails, ruby, deltacloud
 ---
 
 <img src="http://rubyonrails.org/images/rails.png" style="float: right; padding-left: 15px"/>

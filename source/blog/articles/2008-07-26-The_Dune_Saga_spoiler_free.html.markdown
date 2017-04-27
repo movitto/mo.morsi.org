@@ -1,6 +1,7 @@
 ---
 title: The Dune Saga spoiler free
 date: 2008-07-26
+tags: book review
 ---
 
 I am a HUGE sci-fi fan. Having just finished the last book in the original Dune Series, <a href="http://en.wikipedia.org/wiki/Chapterhouse_Dune">Chapterhouse Dune</a> I can now say without a doubt (not that I ever had any) that Frank Herbert is a phenomenal author and one of the greatest science fiction writers of all time. Not only does he seamlessly intermingle religion, politics, prophecy, technology, laws and governance, genetics, sociology and many many many more profound topics into one flawless epic, his writing style does so in a fashion that astounds. In some ways he is a mystery writer, not in the conventional "murder mystery", but one such that in each book, the reader is revealed subtle clues as to the plans and plots of various characters, as well as the profound underlying themes and lessons of the books. It is not until the very end of each book, almost always within the last 10-20 pages of the 400+ page volumes, do we finally discover the full plot in all its glory, and often Herbert's writing allows us to deduce the final conclusions just moments before it is revealed. 

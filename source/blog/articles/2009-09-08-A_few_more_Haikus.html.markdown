@@ -1,6 +1,7 @@
 ---
 title: A few more Haikus
 date: 2009-09-08
+tags: haikus, poetry
 ---
 
 Came up with these about random topics over some time and figure I'd share. I'm still no expert and am learning (there seem to be a few sites on the net where people can share them).
