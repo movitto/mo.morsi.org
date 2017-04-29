@@ -134,6 +134,20 @@ a {
   float: right;
 }
 
+#search_widget {
+  position: fixed;
+  bottom: 25px;
+  right: 0;
+
+  width:  300px;
+
+  padding: 3px;
+  margin: 3px;
+  border: 1px solid green;
+  border-radius: 5px;
+  background-color: #0C141F;
+}
+
 .article-date {
   float: right;
   margin-left: 10px;
