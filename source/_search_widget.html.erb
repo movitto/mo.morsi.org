@@ -1,3 +1,19 @@
+<div id="search_toggle">
+  <p>&#9906;</p>
+
+  <script>
+  $(document).ready(function(){
+    $('#search_toggle').hover(function(){
+      $('#search_widget').show();
+    });
+
+    $('#search_widget').hover(function(){}, function(){
+      $('#search_widget').hide();
+    });
+  });
+  </script>
+</div>
+
 <div id="search_widget">
 <script>
   (function() {
