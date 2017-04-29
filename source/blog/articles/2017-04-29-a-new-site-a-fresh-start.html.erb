@@ -1,0 +1,33 @@
+---
+title: A New Site, A Fresh Start
+date: 2017-04-29 03:26 UTC
+tags:
+---
+
+<p>
+I started this blog 10 years ago. How the world has changed... (and yet is still the same...)
+</p>
+
+<p>
+Recently I noticed my site was unaccessible. No 404, no error response, just a blank page. After a brief moment of panic, I ssh'd into my host provider and breathed a sign of relief upon discovering all db &amp; fs entities intact, including the instance of <a href="https://www.drupal.org/">Drupal</a> which my site was based on (a horribly outdated instance mind you, and note I said <b>was based</b>). In any case, I suspect my (cheap) host provider updated their version of PHP or some critical library w/ the effect of my Drupal instance not working.
+</p>
+
+<%= image_tag "dogefox.jpg", :style => "float: right; width: 25%; margin-left: 20px; margin-right: 20px;"%>
+
+<p>
+Having struggled w/ PHP &amp; Drupal many times over the years, I was finally ready to go cold turkey, and migrated the blog to <a href="https://middlemanapp.com/">Middleman</a>, which brings the awesomeness of <a href="http://rubyonrails.org/">Rails</a> to static site generation. I am very much in love with Middleman right now, it's the perfect tool for this problem domain, it's incredibly easy to setup a new site, use any high level templating / markup / styling language to customize your frontend, throw in any js or other framework to handle dynamic interactions (including <a href="http://kripken.github.io/emscripten-site/">emscripten</a> to run C in the browser), and you're good to go. Tailoring things on the fly is a cinch due to the convenient embedded webserver sporting live-reloading, and when you're ready to push to production it's a single command to build the static html. A quick <a href="https://linux.die.net/man/1/rsync">rsync -azP</a> synchronizes it w/ your webserver and now your site is available to the world at blazing speeds!
+</p>
+
+<p>
+Anyways, enough Middleman gushing (but seriously check it out!). In addition to the port, I rethemed the site, be sure to also check out the new design if your reading this via rss. Note mobile browser UI's aren't currently supported, so no angry emails if you can't read things on your phone! (I know their coming...)
+</p>
+
+<p>
+Be sure to stay subscribed to github for updates. I'm hoping <a href="https://github.com/movitto/virtfs-refs">virtfs-refs</a> will see some love soon if I can figure out how to extend the current fs parsing mechanisms w/ file content retrieval. We've also been prototyping designs for the PI Switch project I <a href="http://mo.morsi.org/blog/2017/02/18/Project_Idea_PI_Sw1tch/">mentioned</a> a while back, more updates on that soon as things progress.
+</p>
+
+<p>
+Keep <a href="https://www.youtube.com/watch?v=fUhQXibl-n4">surfing</a>!!!
+</p>
+
+<div style="clear: both;"></div>
