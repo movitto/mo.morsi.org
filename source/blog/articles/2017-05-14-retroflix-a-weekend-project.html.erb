@@ -1,0 +1,43 @@
+---
+title: RetroFlix - A Weekend Project
+date: 2017-05-14 18:22 UTC
+tags: retro gaming, raspberry pi, sinatra
+---
+
+<p>
+Now that we have the '<%= link_to "mount", post_url("3D Printing Fun") %>' component of the PI Sw1tch, and an awesome way to playgames through the PI on our TV, we need a collection of games to play! It goes without saying that <%= link_to "Nethack", "http://thegreatestgameyouwilleverplay.com/" %> was installed (combined w/ ssh X11 forwarding = persistent graphical nethack anywhere = epicness!!!). But I also happen to have a huge box of Retro video games (dating back to my childhood), which would be good to load onto the device. But unfortunately cloning so many games would take some time, and there are already <%= link_to "online databases", "https://www.emuparadise.me/" %> of these backups, so I opted to write a small web app to download and manage the collection.
+</p>
+
+<p>
+It can be found <%= link_to "here", "https://github.com/movitto/retroflix/" %> and you can see some screens below:
+</p>
+
+<%= link_to image_tag("https://raw.githubusercontent.com/wiki/movitto/retroflix/screens/my_library.png",
+                      :style => "width: 20%; float: left;"),
+                      "https://raw.githubusercontent.com/wiki/movitto/retroflix/screens/my_library.png" %>
+
+<%= link_to image_tag("https://raw.githubusercontent.com/wiki/movitto/retroflix/screens/game_info.png",
+                      :style => "width: 20%; float: left; margin-left: 10px;"),
+                      "https://raw.githubusercontent.com/wiki/movitto/retroflix/screens/game_info.png" %>
+
+<%= link_to image_tag("https://raw.githubusercontent.com/wiki/movitto/retroflix/screens/game_previews.png",
+                      :style => "width: 20%; float: left; margin-left: 10px;"),
+                      "https://raw.githubusercontent.com/wiki/movitto/retroflix/screens/game_previews.png" %>
+
+<%= link_to image_tag("https://raw.githubusercontent.com/wiki/movitto/retroflix/screens/game_list.png",
+                      :style => "width: 20%; float: left; margin-left: 10px;"),
+                      "https://raw.githubusercontent.com/wiki/movitto/retroflix/screens/game_list.png" %>
+
+
+<div style="clear: both"></div>
+
+<p>
+It was built as a <%= link_to "Sinatra", "http://www.sinatrarb.com/"  %> web service, simply acting as a frontend to a popular emulator database, allowing the user to navigate &amp; preview app for various systems, and download / run them locally. The <b>RetroFlix</b> application itself is offered as a lightweight <%= link_to "Microservice", "https://en.wikipedia.org/wiki/Microservices" %> simply acting as a proxy to the required various underlying components. It's fairly simple to setup &amp; install (see the <b><%= link_to "README", "https://github.com/movitto/retroflix/blob/master/README.md" %></b>), and builds upon existing emulators &amp; components the user has locally.
+</p>
+
+<p>
+As with everything else, it's still a work in progress, but it already sufficing to relive classic memories!
+</p>
+
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/QhH_iibOJv0" frameborder="0"></iframe>
