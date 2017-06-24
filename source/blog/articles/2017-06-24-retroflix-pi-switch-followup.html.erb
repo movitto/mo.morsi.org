@@ -1,0 +1,114 @@
+---
+title: RetroFlix / PI Switch Followup
+date: 2017-06-24 15:40 UTC
+tags:
+---
+
+<p>I've been trying to dedicate some <%= link_to "cycles", "https://en.wikipedia.org/wiki/Cycle_per_second" %> to wrapping up the Raspberry PI entertainment center project mentioned a while back. I decided to abandon the <%= link_to "PI Switch", post_url("Project Idea - PI Sw1tch") %> idea as the original controller which was purchased for it just did not work properly (or should I say only worked sporadically/intermitantly). It being a cheap device bought online, it wasn't worth the effort to debug (funny enough I can't find the device on Amazon anymore, perhaps other people were having issues...).</p>
+
+<p>Not being able to find another suitable gamepad to use as the basis for a snap together portable device, I bought a <%= link_to "Rii wireless controller", "https://www.amazon.com/gp/product/B00Z81U3YY" %> (which works great out of the box!) and dropped the project (also partly due to lack of personal interest). But the previously designed wall mount works great, and after a bit of work the PI now functions as a seamless as a media center.</p>
+
+<p>Unfortunately to get it there, a few workarounds were needed. These are listed below (in no particular order).</p>
+
+<style>
+#rpi_setup li{
+  margin-bottom: 10px;
+}
+</style>
+
+<ul id="rpi_setup">
+  <li><p>To start off, increase your GPU memory. This we be needed to run games with any reasonable performance. This can be accomplished through the Raspberry PI configuration interface.</p>
+
+      <%= link_to image_tag("rpi-setup1.png", :style=> "float: left; width: 45%; margin-bottom: 10px;"), image_path("rpi-setup1.png") %>
+      <%= link_to image_tag("rpi-setup2.png", :style=> "float: left; width: 45%; margin-bottom: 10px; padding-left: 10px;"), image_path("rpi-setup2.png") %>
+      <div style="clear: both"></div>
+      
+      <p>Here you can also overclock your PI if your model supports it (v3.0 does not as evident w/ the screenshot, though there are <%= link_to "workarounds", "https://www.raspberrypi.org/forums/viewtopic.php?f=66&t=138123" %></p>
+  </li>
+
+  <li>
+    <p>
+    If you are having trouble w/ the PI output resolution being too large / small for your tv, try adjusting the aspect ratio on your set. Previously mine was set to "theater mode", cutting off the edges of the device output. Resetting it to normal resolved the issue.
+    </p>
+
+    <%= link_to image_tag("rpi-setup3.jpg", :style=> "float: left; width: 25%; padding-left: 10px; height: 250px;"), image_path("rpi-setup3.jpg") %>
+    <%= link_to image_tag("rpi-setup5.jpg", :style=> "float: left; width: 25%; padding-left: 10px;"), image_path("rpi-setup5.jpg") %>
+    <%= link_to image_tag("rpi-setup4.jpg", :style=> "float: left; width: 25%; padding-left: 10px;"), image_path("rpi-setup4.jpg") %>
+    <div style="clear: both"></div>
+  </li>
+
+  <li>
+    To get the <%= link_to "Playstation SixAxis", "https://en.wikipedia.org/wiki/Sixaxis" %> controller working via bluetooth required a few steps.
+    <ul>
+      <li>Unplug your playstation (since it will boot by default when the controller is activated)</li>
+
+      <li>On the PI, run
+
+      <% code do %>
+        sudo bluetoothctl
+      <% end %>
+
+      </li>
+
+      <li>Start the controller and watch for a new devices in the <b>bluetoothctl</b> output. Make note of the device id</li>
+
+      <li>Still in the bluetoothctl command prompt, run
+
+      <% code do %>
+        trust [deviceid]
+      <% end %>
+
+      </li>
+
+      <li>
+        In the Raspberry PI bluetooth menu, click 'make discoverable' (this can also be accomplished via the bluetoothctl command prompt with the <b>discoverable on</b> command)
+
+        <%= link_to image_tag("rpi-setup6.png", :style=> ""), image_path("rpi-setup6.png") %>
+      </li>
+
+      <li>Finally restart the controller and it should autoconnect!</li>
+    </ul>
+  </li>
+
+  <li>To install recent versions of Ruby you will need to install and setup <%= link_to "rbenv", "https://github.com/rbenv/rbenv" %>. The current version in the RPI repos is too old to be of use (of interest for RetroFlix, see below)
+  </li>
+
+  <li>Using <%= link_to "mednafen", "https://mednafen.github.io/" %> requires some config changes, notabley to disable opengl output and enable SDL. Specifically change the following line from
+
+    <% code do %>
+      video.driver opengl
+    <% end %>
+
+    To
+
+    <% code do %>
+      video.driver sdl
+    <% end %>
+
+    Unfortunately after alot of effort, I was not able to get <%= link_to "mupen64", "http://mupen64.emulation64.com/" %> working (while most games start as confirmed by audio cues, all have black / blank screens)... so no N64 games on the PI for now :-(
+  </li>
+
+  <li>But who needs N64 when you have <%= link_to "Nethack", "http://thegreatestgameyouwilleverplay.com/" %>! (the most recent version of which works flawlessly). In addition to the <%= link_to "small tweaks", post_url("Compiling / Playing NetHack 3.6.0 on Fedora") %> needed to compile the latest version on Linux, inorder to get the awesome <%= link_to "Nevanda", image_path("Nevanda.xpm") %> tileset working, update <b>include/config.h</b> to enable XPM graphics:
+
+    <% code do %>
+    -/* # define USE_XPM */ /* Disable if you do not have the XPM library */
+    +#define USE_XPM  /* Disable if you do not have the XPM library */
+    <% end %>
+
+    Once installed, edit your <b>nh/install/games/lib/nethackdir/NetHack.ad</b> config file (in <b>~</b> if you installed nethack there), to reference the newtileset:
+
+    <% code do %>
+    -NetHack.tile_file: x11tiles
+    +NetHack.tile_file: /home/pi/Downloads/Nevanda.xpm
+    <% end %>
+</ul>
+
+<hr/>
+
+<p>Finally <%= link_to "RetroFlix", "https://github.com/movitto/retroflix/" %> received some tweaking &amp; love. Most changes were visual optimizations and eye candy (including some nice retro fonts and colors), though a workers were also added so the actual downloads could be performed without blocking the UI. Overall it's simple and works great, a perfect portal to work on those high scores!</p>
+
+<p>That's all for now, look for some more updates on the ReFS front in the near future!</p>
+
+<div style="margin: 20px; font-size: 2.5em;">
+☯
+</div>
