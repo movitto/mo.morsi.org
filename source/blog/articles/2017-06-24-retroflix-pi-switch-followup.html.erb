@@ -6,7 +6,7 @@ tags:
 
 <p>I've been trying to dedicate some <%= link_to "cycles", "https://en.wikipedia.org/wiki/Cycle_per_second" %> to wrapping up the Raspberry PI entertainment center project mentioned a while back. I decided to abandon the <%= link_to "PI Switch", post_url("Project Idea - PI Sw1tch") %> idea as the original controller which was purchased for it just did not work properly (or should I say only worked sporadically/intermitantly). It being a cheap device bought online, it wasn't worth the effort to debug (funny enough I can't find the device on Amazon anymore, perhaps other people were having issues...).</p>
 
-<p>Not being able to find another suitable gamepad to use as the basis for a snap together portable device, I bought a <%= link_to "Rii wireless controller", "https://www.amazon.com/gp/product/B00Z81U3YY" %> (which works great out of the box!) and dropped the project (also partly due to lack of personal interest). But the previously designed wall mount works great, and after a bit of work the PI now functions as a seamless as a media center.</p>
+<p>Not being able to find another suitable gamepad to use as the basis for a snap together portable device, I bought a <%= link_to "Rii wireless controller", "https://www.amazon.com/gp/product/B00Z81U3YY" %> (which works great out of the box!) and dropped the project (also partly due to lack of personal interest). But the previously designed wall mount works great, and after a bit of work the PI now functions as a seamless media center.</p>
 
 <p>Unfortunately to get it there, a few workarounds were needed. These are listed below (in no particular order).</p>
 
@@ -23,7 +23,7 @@ tags:
       <%= link_to image_tag("rpi-setup2.png", :style=> "float: left; width: 45%; margin-bottom: 10px; padding-left: 10px;"), image_path("rpi-setup2.png") %>
       <div style="clear: both"></div>
       
-      <p>Here you can also overclock your PI if your model supports it (v3.0 does not as evident w/ the screenshot, though there are <%= link_to "workarounds", "https://www.raspberrypi.org/forums/viewtopic.php?f=66&t=138123" %></p>
+      <p>Here you can also overclock your PI if your model supports it (v3.0 does not as evident w/ the screenshot, though there are <%= link_to "workarounds", "https://www.raspberrypi.org/forums/viewtopic.php?f=66&t=138123" %>)</p>
   </li>
 
   <li>
@@ -85,10 +85,10 @@ tags:
       video.driver sdl
     <% end %>
 
-    Unfortunately after alot of effort, I was not able to get <%= link_to "mupen64", "http://mupen64.emulation64.com/" %> working (while most games start as confirmed by audio cues, all have black / blank screens)... so no N64 games on the PI for now :-(
+    Unfortunately after alot of effort, I was not able to get <%= link_to "mupen64", "http://mupen64.emulation64.com/" %> working (while most games start, as confirmed by audio cues, all have black / blank screens)... so no N64 games on the PI for now ☹
   </li>
 
-  <li>But who needs N64 when you have <%= link_to "Nethack", "http://thegreatestgameyouwilleverplay.com/" %>! (the most recent version of which works flawlessly). In addition to the <%= link_to "small tweaks", post_url("Compiling / Playing NetHack 3.6.0 on Fedora") %> needed to compile the latest version on Linux, inorder to get the awesome <%= link_to "Nevanda", image_path("Nevanda.xpm") %> tileset working, update <b>include/config.h</b> to enable XPM graphics:
+  <li>But who needs N64 when you have <%= link_to "Nethack", "http://thegreatestgameyouwilleverplay.com/" %>! ♥‿♥(the most recent version of which works flawlessly). In addition to the <%= link_to "small tweaks", post_url("Compiling / Playing NetHack 3.6.0 on Fedora") %> needed to compile the latest version on Linux, inorder to get the awesome <%= link_to "Nevanda", image_path("Nevanda.xpm") %> tileset working, update <b>include/config.h</b> to enable XPM graphics:
 
     <% code do %>
     -/* # define USE_XPM */ /* Disable if you do not have the XPM library */
