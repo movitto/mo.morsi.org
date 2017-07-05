@@ -1,0 +1,754 @@
+---
+title: ReFS Part III - Back to the Resilience
+date: 2017-07-05 19:21 UTC
+tags: refs, filesystems
+---
+
+<p>
+We've made some great headway on the <%= link_to "ReFS", "https://en.wikipedia.org/wiki/ReFS" %> filesystem anaylsis front to the point of being able to implement a rudimentary file extraction mechanism (complete with timestamps).
+</p>
+
+<p>
+First a recap of the story so far:
+</p>
+
+<ul>
+  <li>ReFS, aka "The Resilient FileSystem" is a relatively new filesystem developed by Microsoft. First shipped in Windows Server 2012, it has since seen an increase in popularity and use, especially in enterprise and cloud environments.</li>
+  <li>Little is known about the ReFS internals outside of some sparse information provided by Microsoft. According to that, data is organized into pages of a fixed size, starting at a static position on the disk. The first round of analysis was to determine the boundaries of these top level organizational units to be able to scan the disk for high level structures.</li>
+  <li>Once top level structures, including the object table and root directory, were identified, each was analyzed in detail to determine potential parsable structures such as generic Attribute and Record entities as well as file and directory references.</li>
+  <li>The latest round of analysis consisted of diving into these entities in detail to try and deduce a mechanism which to extract file metadata and content</li>
+</ul>
+
+<p>
+Before going into details, we should note this analysis is based on observations against ReFS disks generated locally, without extensive sequential cross-referencing and comparison of many large files with many changes. Also it is possible that some structures are oversimplified and/or not fully understood. That being said, this should provide a solid basis for additional analysis, getting us deep into the filesystem, and allowing us to poke and prod with isolated bits to identify their semantics.
+</p>
+
+<p>
+Now onto the fun stuff!
+</p>
+
+<hr />
+
+<p>
+- A ReFS filesystem can be identified with the following <b>signature</b> at the very start of the partition:
+</p>
+
+<% code do %>
+    00 00 00 52  65 46 53 00  00 00 00 00  00 00 00 00 ...ReFS.........
+    46 53 52 53  XX XX XX XX  XX XX XX XX  XX XX XX XX FSRS
+<% end %>
+
+<p>
+- The following Ruby code will tell you if a given offset in a given file contains a ReFS partition:
+</p>
+
+<% code("ruby") do %>
+    # Point this to the file containing the disk image
+    DISK="~/ReFS-disk.img"
+
+    # Point this at the start of the partition containing the ReFS filesystem
+    ADDRESS=0x500000
+
+    # FileSystem Signature we are looking for
+    FS_SIGNATURE  = [0x00, 0x00, 0x00, 0x52, 0x65, 0x46, 0x53, 0x00] # ...ReFS.
+
+    img = File.open(File.expand_path(DISK), 'rb')
+    img.seek ADDRESS
+    sig = img.read(FS_SIGNATURE.size).unpack('C*')
+    puts "Disk #{sig == FS_SIGNATURE ? "contains" : "does not contain"} ReFS filesystem"
+<% end %>
+
+
+<p>
+- ReFS pages are <b>0x4000</b> bytes in length
+</p>
+
+<p>
+- On all inspected systems, the first page number is <b>0x1e</b> (0x78000 bytes after the start of the partition containing the filesystem). This is inline w/ Microsoft documentation which states that the first metadata dir is at a fixed offset on the disk.
+</p>
+
+<p>
+- Other pages contain various system, directory, and volume structures and tables as well as journaled versions of each page (shadow-written upon regular disk writes)
+</p>
+
+<hr/>
+
+<p>
+- The first byte of each page is its <b>Page Number</b>
+</p>
+
+<p>
+- The first 0x30 bytes of every metadata page (dubbed the <b>Page Header</b>) seem to follow a certain pattern:
+</p>
+
+<% code do %>
+    byte  0: XX XX 00 00   00 00 00 00   YY 00 00 00   00 00 00 00
+    byte 16: 00 00 00 00   00 00 00 00   ZZ ZZ 00 00   00 00 00 00
+    byte 32: 01 00 00 00   00 00 00 00   00 00 00 00   00 00 00 00
+<% end %>
+    
+<ul>
+  <li>dword 0 (XX XX) is the page number which is sequential and corresponds to the 0x4000 offset of the page</li>
+  <li>dword 2 (YY) is the journal number or sequence number</li>
+  <li>dword 6 (ZZ ZZ) is the "<b>Virtual Page Number</b>", which is non-sequential (eg values are in no apparent order) and seem to tie related pages together.</li>
+  <li>dword 8 is always 01, perhaps an "allocated" flag or other</li>
+</ul>
+
+<p>
+- Multiple pages may share a virtual page number (byte 24/dword 6) but usually don't appear in sequence.
+</p>
+
+<p>
+- The following Ruby code will print out the pages in a ReFS partition along w/ their shadow copies:
+</p>
+
+<% code("ruby") do %>
+    # Point this to the file containing the disk image
+    DISK="~/ReFS-disk.img"
+    
+    # Point this at the start of the partition containing the ReFS filesystem
+    ADDRESS=0x500000
+    
+    PAGE_SIZE=0x4000
+    PAGE_SEQ=0x08
+    PAGE_VIRTUAL_PAGE_NUM=0x18
+    
+    FIRST_PAGE = 0x1e
+    
+    img = File.open(File.expand_path(DISK), 'rb')
+    
+    page_id = FIRST_PAGE
+    img.seek(ADDRESS + page_id*PAGE_SIZE)
+    while contents = img.read(PAGE_SIZE)
+      id = contents.unpack('S').first
+      if id == page_id
+        pos = img.pos
+    
+        start = ADDRESS + page_id * PAGE_SIZE
+    
+        img.seek(start + PAGE_SEQ)
+        seq = img.read(4).unpack("L").first
+    
+        img.seek(start + PAGE_VIRTUAL_PAGE_NUM)
+        vpn = img.read(4).unpack("L").first
+    
+        print "page: "
+        print "0x#{id.to_s(16).upcase}".ljust(7)
+        print " @ "
+        print "0x#{start.to_s(16).upcase}".ljust(10)
+        print ": Seq - "
+        print "0x#{seq.to_s(16).upcase}".ljust(7)
+        print "/ VPN - "
+        print "0x#{vpn.to_s(16).upcase}".ljust(9)
+        puts
+    
+        img.seek pos
+      end
+      page_id += 1
+    end
+<% end %>
+
+<hr/>
+
+<p>
+- The <b>object table</b> (virtual page number 0x02) associates object ids' with the pages on which they reside. Here we an AttributeList consisting of Records of key/value pairs (see below for the specifics on these data structures). We can lookup the object id of the root directory (0x600000000) to retrieve the page on which it resides:
+</p>
+
+<% code do %>
+   50 00 00 00 10 00 10 00 00 00 20 00 30 00 00 00 - total length / key & value boundries
+   00 00 00 00 00 00 00 00 00 06 00 00 00 00 00 00 - object id
+   F4 0A 00 00 00 00 00 00 00 00 02 08 08 00 00 00 - page id / flags
+   CE 0F 85 14 83 01 DC 39 00 00 00 00 00 00 00 00 - checksum
+   08 00 00 00 08 00 00 00 04 00 00 00 00 00 00 00
+<% end %>
+
+<p>
+   ^ The object table entry for the root dir, containing its page (0xAF4)
+</p>
+
+<p>
+- When retrieving pages by id of virtual page number, look for the ones with the <b>highest sequence number</b> as those are the latest copies of the shadow-write mechanism.
+</p>
+
+<p>
+- Expanding upon the previous example we can implement some logic to read and dump the object table:
+</p>
+
+<% code("ruby") do %>
+    ATTR_START = 0x30
+    
+    def img
+      @img ||= File.open(File.expand_path(DISK), 'rb')
+    end
+    
+    def pages
+      @pages ||= begin
+        _pages = {}
+        page_id = FIRST_PAGE
+        img.seek(ADDRESS + page_id*PAGE_SIZE)
+    
+        while contents = img.read(PAGE_SIZE)
+          id = contents.unpack('S').first
+          if id == page_id
+            pos = img.pos
+            start = ADDRESS + page_id * PAGE_SIZE
+            img.seek(start + PAGE_SEQ)
+            seq = img.read(4).unpack("L").first
+    
+            img.seek(start + PAGE_VIRTUAL_PAGE_NUM)
+            vpn = img.read(4).unpack("L").first
+            _pages[id] = {:id => id, :seq => seq, :vpn => vpn}
+            img.seek pos
+          end
+    
+          page_id += 1
+        end
+    
+        _pages
+      end
+    end
+    
+    def page(opts)
+      if opts.key?(:id)
+        return pages[opts[:id]]
+      elsif opts[:vpn]
+        return pages.values.select { |v|
+          v[:vpn] == opts[:vpn]
+        }.sort { |v1, v2| v1[:seq] <=> v2[:seq] }.last
+      end
+    
+      nil
+    end
+    
+  
+    def obj_pages
+      @obj_pages ||= begin
+        obj_table = page(:vpn => 2)
+  
+        img.seek(ADDRESS + obj_table[:id] * PAGE_SIZE)
+        bytes = img.read(PAGE_SIZE).unpack("C*")
+        len1 = bytes[ATTR_START]
+        len2 = bytes[ATTR_START+len1]
+        start = ATTR_START + len1 + len2
+  
+        objs = {}
+  
+        while bytes.size > start && bytes[start] != 0
+          len = bytes[start]
+          id  = bytes[start+0x10..start+0x20-1].collect { |i| i.to_s(16).upcase }.reverse.join()
+          tgt = bytes[start+0x20..start+0x21].collect   { |i| i.to_s(16).upcase }.reverse.join()
+          objs[id] = tgt
+          start += len
+        end
+  
+        objs
+      end
+    end
+  
+    obj_pages.each { |id, tgt|
+      puts "Object #{id} is on page #{tgt}"
+    }
+  <% end %>
+
+
+<p>
+  We could also implement a method to lookup a specific object's page:
+</p>
+
+<% code("ruby") do %>
+    def obj_page(obj_id)
+      obj_pages[obj_id]
+    end
+
+    puts page(:id => obj_page("0000006000000000").to_i(16))
+<% end %>
+
+<p>
+  This will retrieve the page containing the root directory
+</p>
+
+<hr/>
+
+<p>
+- <b>Directories</b>, from the root dir down, follow a consistent pattern. They are comprised of sequential lists of data structures whose <b>length is given by the first word value</b> (Attributes and Attribute Lists).
+</p>
+
+<p>
+  List are often prefixed with a Header Attribute defining the total length of the Attributes that follow that consititute the list. Though this is not a hard set rule as in the case where the list resides in the body of another Attribute (more on that below).
+</p>
+  
+<p>
+  In either case, Attributes may be parsed by iterating over the bytes after the directory page header, reading and processing the first word to determine the next number of bytes to read (minus the length of the first word), and then repeating until null (0000) is encountered (being sure to process specified padding in the process)
+</p>
+  
+<p>
+- Various Attributes take on different semantics including references to subdirs and files as well as branches to additional pages containing more directory contents (for large directories); though not all Attributes have been identified.
+</p>
+
+<p>
+  The structures in a directory listing always seem to be of one of the following formats:
+</p>
+
+<p>
+  - Base <b>Attribute</b> - The simplest / base attribute consisting of a block whose length is given at the very start.
+</p>
+
+<p>
+    An example of a typical Attribute follows:
+</p>
+
+<% code do %>
+      a8 00 00 00  28 00 01 00  00 00 00 00  10 01 00 00  
+      10 01 00 00  02 00 00 00  00 00 00 00  00 00 00 00  
+      00 00 00 00  00 00 00 00  a9 d3 a4 c3  27 dd d2 01  
+      5f a0 58 f3  27 dd d2 01  5f a0 58 f3  27 dd d2 01  
+      a9 d3 a4 c3  27 dd d2 01  20 00 00 00  00 00 00 00  
+      00 06 00 00  00 00 00 00  03 00 00 00  00 00 00 00  
+      5c 9a 07 ac  01 00 00 00  19 00 00 00  00 00 00 00  
+      00 00 01 00  00 00 00 00  00 00 00 00  00 00 00 00  
+      00 00 00 00  00 00 00 00  00 00 00 00  00 00 00 00  
+      00 00 00 00  00 00 00 00  01 00 00 00  00 00 00 00  
+      00 00 00 00  00 00 00 00
+<% end %>
+
+<p>
+   Here we a section of 0xA8 length containing the following four file timestamps (more on this coversion below)
+</p>
+
+<% code do %>
+       a9 d3 a4 c3  27 dd d2 01 - 2017-06-04 07:43:20
+       5f a0 58 f3  27 dd d2 01 - 2017-06-04 07:44:40
+       5f a0 58 f3  27 dd d2 01 - 2017-06-04 07:44:40
+       a9 d3 a4 c3  27 dd d2 01 - 2017-06-04 07:43:20
+<% end %>
+
+<p>
+   It is safe to assume that either
+   <ul>
+     <li>one of the first fields in any given Attribute contains an identifier detailing how the attribute should be parsed _or_</li>
+     <li>the context is given by the Attribute's position in the list.</li>
+   </ul>
+</p>
+
+<p>
+   The following is a method which can be used to parse a given Attribute off disk, provided the img read position is set to its start:
+</p>
+
+<% code("ruby") do %>
+    def read_attr
+      pos = img.pos
+      packed = img.read(4)
+      return new if packed.nil?
+      attr_len = packed.unpack('L').first
+      return new if attr_len == 0
+
+      img.seek pos
+      value = img.read(attr_len)
+      Attribute.new(:pos   => pos,
+                    :bytes => value.unpack("C*"),
+                    :len   => attr_len)
+    end
+<% end %>
+
+
+<p>
+  - <b>Records</b> - Key / Value pairs whose total length and key / value lengths are given in the first 0x20 bytes of the attribute. These are used to associated metadata sections with files whose names are recorded in the keys and contents are recorded in the value.
+</p>
+
+<p>
+    An example of a typical Record follows:
+</p>
+
+<% code do %>
+    40 04 00 00   10 00 1A 00   08 00 30 00   10 04 00 00   @.........0.....
+    30 00 01 00   6D 00 6F 00   66 00 69 00   6C 00 65 00   0...m.o.f.i.l.e.
+    31 00 2E 00   74 00 78 00   74 00 00 00   00 00 00 00   1...t.x.t.......
+    A8 00 00 00   28 00 01 00   00 00 00 00   10 01 00 00   ¨...(...........
+    10 01 00 00   02 00 00 00   00 00 00 00   00 00 00 00   ................
+    00 00 00 00   00 00 00 00   A9 D3 A4 C3   27 DD D2 01   ........©Ó¤Ã'ÝÒ.
+    5F A0 58 F3   27 DD D2 01   5F A0 58 F3   27 DD D2 01   _ Xó'ÝÒ._ Xó'ÝÒ.
+    A9 D3 A4 C3   27 DD D2 01   20 00 00 00   00 00 00 00   ©Ó¤Ã'ÝÒ. .......
+    00 06 00 00   00 00 00 00   03 00 00 00   00 00 00 00   ................
+    5C 9A 07 AC   01 00 00 00   19 00 00 00   00 00 00 00   \..¬............
+    00 00 01 00   00 00 00 00   00 00 00 00   00 00 00 00   ................
+    00 00 00 00   00 00 00 00   00 00 00 00   00 00 00 00   ................
+    00 00 00 00   00 00 00 00   01 00 00 00   00 00 00 00   ................
+    00 00 00 00   00 00 00 00   20 00 00 00   A0 01 00 00   ........ ... ...
+    D4 00 00 00   00 02 00 00   74 02 00 00   01 00 00 00   Ô.......t.......
+    78 02 00 00   00 00 00 00 ...(cutoff)                   x.......
+<% end %>
+
+
+<p>
+    Here we see the Record parameters given by the first row:
+</p>
+
+<ul>
+  <li>total length      - 4 bytes = 0x440</li>
+  <li>key offset        - 2 bytes = 0x10</li>
+  <li>key length        - 2 bytes = 0x1A</li>
+  <li>flags / identifer - 2 bytes = 0x08</li>
+  <li>value offset      - 2 bytes = 0x30</li>
+  <li>value length      - 2 bytes = 0x410</li>
+</ul>
+
+<p>
+    Naturally, the Record finishes after the value, 0x410 bytes after the value start at 0x30, or 0x440 bytes after the start of the Record (which lines up with the total length).
+</p>
+
+<p>
+    We also see that this Record corresponds to a file I created on disk as the key is the Record flag (0x10030) followed by the filename (mofile1.txt).
+</p>
+    
+<p>
+    Here the first attribute in the Record value is the simple attribute we discussed above, containing the file timestamps. The File Reference Attribute List Header follows (more on that below).
+</p>
+
+<p>
+  From observation Records w/ flag values of '0' or '8' are what we are looking for, while '4' occurs often, this almost always seems to indicate a <b>Historical Record</b>, or a Record that has since been replaced with another.
+</p>
+
+<p>
+    Since Records are prefixed with their total length, they can be thought of a subclass of Attribute. The following is a Ruby class that uses composition to dispatch record field lookup calls to values in the underlying Attribute:
+</p>
+
+<% code("ruby") do %>
+    class Record
+      attr_accessor :attribute
+
+      def initialize(attribute)
+        @attribute = attribute
+      end
+
+      def key_offset
+        @key_offset ||= attribute.words[2]
+      end
+
+      def key_length
+        @key_length ||= attribute.words[3]
+      end
+
+      def flags
+        @flags ||= attribute.words[4]
+      end
+
+      def value_offset
+        @value_offset ||= attribute.words[5]
+      end
+
+      def value_length
+        @value_offset ||= attribute.words[6]
+      end
+
+      def key
+        @key ||= begin
+          ko, kl, vo, vl = boundries
+          attribute.bytes[ko...ko+kl].pack('C*')
+        end
+      end
+
+      def value
+        @value ||= begin
+          ko, kl, vo, vl = boundries
+          attribute.bytes[vo..-1].pack('C*')
+        end
+      end
+
+      def value_pos
+        attribute.pos + value_offset
+      end
+
+      def key_pos
+        attribute.pos + key_offset
+      end
+    end # class Record
+<% end %>
+
+<p>
+  - <b>AttributeList</b> - These are more complicated but interesting. At first glance they are simple Attributes of length 0x20 but upon further inspection we consistently see it contains the length of a large block of Attributes (this length is inclusive, as it contains this first one). After parsing this Attribute, dubbed the 'List Header', we should read the remaining bytes in the List as well as the padding, before arriving at the next Attribute
+</p>
+
+   <% code do %>
+   20 00 00 00   A0 01 00 00   D4 00 00 00   00 02 00 00 <- list header specifying total length (0x1A0) and padding (0xD4)
+   74 02 00 00   01 00 00 00   78 02 00 00   00 00 00 00
+   80 01 00 00   10 00 0E 00   08 00 20 00   60 01 00 00
+   60 01 00 00   00 00 00 00   80 00 00 00   00 00 00 00
+   88 00 00 00  ... (cutoff)
+   <% end %>
+
+<p>
+  Here we see an Attribute of 0x20 length, that contains a reference to a larger block size (0x1A0) in its third word.
+</p>
+  
+<p>
+  This can be confirmed by the next Attribute whose size (0x180) is the larger block size minute the length of the header (0x1A0 - 0x20). In this case the list only contains one item/child attribute.
+</p>
+
+<p>
+  In general a simple strategy to parse the entire case would be to:
+</p>
+
+<ul>
+  <li>Parse Attributes individually as normal</li>
+  <li>If we encounter a List Header Attribute, we calculate the size of the list (total length minus header length)</li>
+  <li>Then continue parsing Attributes, adding them to the list until the total length is completed.</li>
+</ul>
+
+<p>
+  It also seems that:
+</p>
+
+<ul>
+  <li>the padding that occurs after the list is given by header word number 5 (in this case 0xD4). After the list is parsed, we consistently see this many null bytes before the next Attribute begins (which is not part of & unrelated to the list).</li>
+  <li>the type of list is given by its 7th word; directory contents correspond to 0x200 while directory branches are indicated with 0x301</li>
+</ul>
+
+
+<p>
+  Here is a class that represents an AttributeList header attribute by encapsulating it in a similar manner to Record above:
+</p>
+
+<% code("ruby") do %>
+    class AttributeListHeader
+      attr_accessor :attribute
+
+      def initialize(attr)
+        @attribute = attr
+      end
+
+      # From my observations this is always 0x20
+      def len
+        @len ||= attribute.dwords[0]
+      end
+
+      def total_len
+        @total_len ||= attribute.dwords[1]
+      end
+
+      def body_len
+        @body_len ||= total_len - len
+      end
+
+      def padding
+        @padding ||= attribute.dwords[2]
+      end
+
+      def type
+        @type ||= attribute.dwords[3]
+      end
+
+      def end_pos
+        @end_pos ||= attribute.dwords[4]
+      end
+
+      def flags
+        @flags ||= attribute.dwords[5]
+      end
+
+      def next_pos
+        @next_pos ||= attribute.dwords[6]
+      end
+    end
+<% end %>
+
+<p>
+  Here is a method to parse the actual Attribute List assuming the image read position is set to the beginning of the List Header
+</p>
+
+<% code("ruby") do %>
+    def read_attribute_list
+      header        = Header.new(read_attr)
+      remaining_len = header.body_len
+      orig_pos      = img.pos
+      bytes         = img.read remaining_len
+      img.seek orig_pos
+
+      attributes = []
+
+      until remaining_len == 0
+        attributes    << read_attr
+        remaining_len -= attributes.last.len
+      end
+
+      img.seek orig_pos - header.len + header.end_pos
+
+      AttributeList.new :header     => header,
+                        :pos        => orig_pos,
+                        :bytes      => bytes,
+                        :attributes => attributes
+    end
+<% end %>
+
+<hr/>
+  
+<p>
+  Now we have most of what is needed to locate and parse individual files, but there are a few missing components including:
+</p>
+
+<p>
+- <b>Directory Tree Branches</b>: These are Attribute Lists where each Attribute corresponds to a record whose value references a page which contains more directory contents.
+</p>
+  
+<p>
+    Upon encountering an AttributeList header with flag value 0x301, we should
+    <ul>
+      <li>iterate over the Attributes in the list,</li>
+      <li>parse them as Records,</li>
+      <li>use the first dword in each value as the page to repeat the directory traversal process (recursively).</li>
+    </ul>
+</p>
+    
+<p>
+    Additional files and subdirs found on the referenced pages should be appended to the list of current directory contents.
+</p>
+
+<p>
+    Note this is the (an?) implementation of the BTree structure in the ReFS filesystem described by Microsoft, as the record keys contain the tree leaf identifiers (based on file and subdirectory names).
+</p>
+    
+<p>
+    This can be used for quick / efficient file and subdir lookup by name (see 'optimization' in 'next steps' below)
+</p>
+
+<p>
+  - <b>SubDirectories</b>: these are simply Records in the directory's Attribute List whose key contains the 0x20030 flag as well as the subdir name.
+</p>
+  
+<p>
+    The value of this Record is the corresponding object id which can be used to lookup the page containing the subdir in the object table.
+</p>
+
+<p>
+    A typical subdirectory Record
+</p>
+
+<% code do %>
+    70 00 00 00  10 00 12 00  00 00 28 00  48 00 00 00  
+    30 00 02 00  73 00 75 00  62 00 64 00  69 00 72 00  <- here we see the key containing the flag (30 00 02 00) followed by the dir name ("subdir2")
+    32 00 00 00  00 00 00 00  03 07 00 00  00 00 00 00  <- here we see the object id as the first qword in the value (0x730)
+    00 00 00 00  00 00 00 00  14 69 60 05  28 dd d2 01  <- here we see the directory timestamps (more on those below)
+    cc 87 ce 52  28 dd d2 01  cc 87 ce 52  28 dd d2 01  
+    cc 87 ce 52  28 dd d2 01  00 00 00 00  00 00 00 00  
+    00 00 00 00  00 00 00 00  00 00 00 10  00 00 00 00
+<% end %>
+
+<p>
+    - <b>Files</b>: like directories are Records whose key contains a flag (0x10030) followed by the filename.
+</p>
+  
+<p>
+    The value is far more complicated though and while we've discovered some basic Attributes allowing us to pull timestamps and content from the fs, there is still more to be deduced as far as the semantics of this Record's value.
+</p>
+
+<p>
+    - The File Record value consists of multiple attributes, though they just appear one after each other, without a List Header. We can still parse them sequentially given that all Attributes are individually prefixed with their lengths and the File Record value length gives us the total size of the block.
+</p>
+
+<p>
+  - The first attribute contains 4 file <b>timestamps</b> at an offset given by the fifth byte of the attribute (though this position may be coincidental an the timestamps could just reside at a fixed location in this attribute).
+<p>
+      
+<p>
+      In the first attribute example above we see the first timestamp is
+</p>
+
+<% code do %>
+       a9 d3 a4 c3  27 dd d2 01
+<% end %>
+       
+<p>
+      This corresponds to the following date
+</p>
+
+<% code do %>
+        2017-06-04 07:43:20
+<% end %>
+
+<p>
+      And may be converted with the following algorithm:
+</p>
+
+<% code("ruby") do %>
+          tsi = TIMESTAMP_BYTES.pack("C*").unpack("Q*").first
+          Time.at(tsi / 10000000 - 11644473600)
+<% end %>
+
+<p>
+      Timestamps being in nanoseconds since the Windows Epoch Data (11644473600 = Jan 1, 1601 UTC)
+</p>
+
+
+<p>
+  - The second Attribute seems to be the Header of an Attribute List containing the '<b>File Reference</b>' semantics. These are the Attributes that encapsulate the file length and content pointers.
+</p>
+    
+<p>
+      I'm assuming this is an Attribute List so as to contain many of these types of Attributes for large files. What is not apparent are the full semantics of all of these fields.
+</p>
+
+<p>
+      But here is where it gets complicated, this List only contains a single attribute with a few child Attributes. This encapsulation seems to be in the same manner as the Attributes stored in the File Record value above, just a simple sequential collection without a Header.
+</p>
+      
+<p>
+  In this single attribute (dubbed the 'File Reference Body') the first Attribute contains the <b>length of the file</b> while the second is the Header for yet another List, this one containing a Record whose value contains a <b>reference to the page which the file contents actually reside</b>.
+</p>
+
+      
+<% code do %>
+      ----------------------------------------
+      | ...                                  |
+      ----------------------------------------
+      | File Entry Record                    |
+      | Key: 0x10030 [FileName]              |
+      | Value:                               |
+      | Attribute1: Timestamps               |
+      | Attribute2:                          |
+      |   File Reference List Header         |
+      |   File Reference List Body(Record)   |
+      |     Record Key: ?                    |
+      |     Record Value:                    |
+      |       File Length Attribute          |
+      |       File Content List Header       |
+      |       File Content Record(s)         |
+      | Padding                              |
+      ----------------------------------------
+      | ...                                  |
+      ----------------------------------------
+<% end %>
+
+
+<p>
+    While complicated each level can be parsed in a similar manner to all other Attributes & Records, just taking care to parse Attributes into their correct levels & structures.
+</p>
+
+<p>
+    As far as actual values,
+    <ul>
+      <li>the file length is always seen at a fixed offset within its attribute (0x3c) and</li>
+      <li>the content pointer seems to always reside in the second qword of the Record value. This pointer is simply a reference to the page which the file contents can be read verbatim.</li>
+    </ul>
+</p>
+
+---
+
+<p>
+And that's it! An example implementation of all this logic can be seen in our expiremental 'resilience' library found here:
+</p>
+
+<%= link_to "https://github.com/movitto/resilience", "https://github.com/movitto/resilience" %>
+
+<p>
+The next steps would be to
+</p>
+<ul>
+  <li>expand upon the data structures above (verify that we have interpreted the existing structures correctly)</li>
+  <li>deduce full Attribute and Record semantics so as to be able to consistently parse files of any given length, with any given number of modifications out of the file system</li>
+</ul>
+
+<p>
+And once we have done so robustly, we can start looking at optimization, possibly rolling out some expiremental production logic for ReFS filesystem support!
+</p>
+
+<p>
+... <%= link_to "Cha-ching", "https://www.youtube.com/watch?v=-0kcet4aPpQ" %>  $ £ ¥ ¢ ₣ ₩ !!!!
