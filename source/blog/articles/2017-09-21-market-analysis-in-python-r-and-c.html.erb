@@ -1,0 +1,423 @@
+---
+
+title: Data &amp; Market Analysis in C++, R, and Python
+date: 2017-09-21 10:46 UTC
+tags: 
+
+---
+<p>
+In recent years, since efforts on The <%= link_to "Omega", post_url("omega - a universe over ip") %> Project and <%= link_to "The Guild", "http://sig315.org" %> sort of fizzled out, I've been exploring various areas of interest with no particular intent other than to play around with some ideas. Data &amp; Financial Engineering was one of those domains and having spent some time diving into the subject (before once again moving on to something else altogether) I'm sharing a few findings here.
+</p>
+
+<p>
+My journey down this path started not too long after the <%= link_to "Bitcoin Barber Shop Pole", post_url("Bitcoin Aware Barbers Pole") %> was completed, and I was looking for a new project to occupy my free time (the little of it that I have). Having long since stepped down from the SIG315 board, but still renting a private office at the space, I was looking for some way to incorporate that into my next project (besides just using it as the occasional place to work). Brainstorming a bit, I settled on a data visualization idea, where data relating to any number of categories would be aggregated, geotagged, and then projected onto a virtual globe. I decided to use the <%= link_to "Marble", "https://marble.kde.org/index.php" %> widget library, built ontop of the <%= link_to "QT Framework", "https://www.qt.io/" %> and had great success:
+</p>
+
+<%= link_to image_tag("datachoppa.png", :style => "width: 75%;"), image_path("datachoppa.png") %>
+
+<p>
+The architecture behind the <b>DataChoppa</b> project was simple, a generic 'Data' class was implemented using <%= link_to "smart pointers", "https://en.wikipedia.org/wiki/Smart_pointer" %> ontop of which the <%= link_to "Facet Pattern", "http://wiki.c2.com/?FacetPattern" %> was incorporated, allowing data to be recorded from any number of sources in a generic manner and represented via convenient high level accessors. This was all collected via synchronization and generation plugins which implement a standarized interface whose output was then fed onto a queue on which processing plugings were listening, selecting the data that they were interested in to be operated on from there. The Processors themselves could put more data onto the queue after which the whole process was repeated ad inf., allowing each plugin to satisfy one bit of data-related functionality.
+</p>
+
+<%= link_to image_tag("datachoppa-arch.png"), image_path("datachoppa-arch.png") %>
+
+<h3>Core Generic &amp; Data Classes</h3>
+
+<% code("cpp") do %>
+namespace DataChoppa{
+  // Generic value container
+  class Generic{
+      Map<std::string, boost::any> values;
+      Map<std::string, std::string> value_strings;
+  };
+
+  namespace Data{
+    /// Data representation using generic values
+    class Data : public Generic{
+      public:
+        Data() = default;
+        Data(const Data& data) = default;
+
+        Data(const Generic& generic, TYPES _types, const Source* _source) :
+          Generic(generic), types(_types), source(_source) {}
+
+        bool of_type(TYPE type) const;
+
+        Vector to_vector() const;
+
+      private:
+        TYPES types;
+
+        const Source* source;
+    }; // class Data
+  }; // namespace Data
+}; // namespace DataChoppa
+<% end %>
+
+<h3>The Process Loop</h3>
+
+<% code("cpp") do %>
+  namespace DataChoppa {
+    namespace Framework{
+      void Processor::process_next(){
+        if(to_process.empty()) return;
+  
+        Data::Data data = to_process.first();
+        to_process.pop_front();
+  
+        Plugins::Processors::iterator plugin = plugins.begin();
+  
+        while(plugin != plugins.end()) {
+          Plugins::Meta* meta = dynamic_cast<Plugins::Meta*>(*plugin);
+          //LOG(debug) << "Processing " << meta->id;
+  
+          try{
+            queue((*plugin)->process(data));
+  
+          }catch(const Exceptions::Exception& e){
+            LOG(warning) << "Error when processing: " << e.what()
+                         << " via " << meta->id;
+          }
+  
+          plugin++;
+        }
+      }
+    }; /// namespace Framework
+  }; /// namespace DataChoppa
+<% end %>
+
+<h3>The HTTP Plugin (abridged)</h3>
+
+<% code("cpp") do %>
+namespace DataChoppa {
+  namespace Plugins{
+    class HTTP : public Framework::Plugins::Syncer,
+                 public Framework::Plugins::Job,
+                 public Framework::Plugins::Meta {
+      public:
+        /// ...
+
+        /// sync - always return data to be added to queue, even on error
+        Data::Vector sync(){
+          String _url = url();
+          Network::HTTP::SyncRequest request(_url, request_timeout);
+
+          for(const Network::HTTP::Header& header : headers())
+            request.header(header);
+
+          int attempted = 0;
+          Network::HTTP::Response response(request);
+
+          while(attempts == -1 || attempted &lt; attempts){
+            ++attempted;
+
+            try{
+              response.update_from(request.request(payload()));
+
+            }catch(Exceptions::Timeout){
+              if(attempted == attempts){
+                Data::Data result = response.to_error_data();
+                result.source = &source;
+                return result.to_vector();
+              }
+            }
+
+            if(response.has_error()){
+              if(attempted == attempts){
+                Data::Data result = response.to_error_data();
+                result.source = &source;
+                return result.to_vector();
+              }
+
+            }else{
+              Data::Data result = response.to_data();
+              result.source = &source;
+              return result.to_vector();
+            }
+          }
+
+          /// we should never get here
+          return Data::Vector();
+        }
+    };
+  }; // namespace Plugins
+}; // namespace DataChoppa
+<% end %>
+
+<p>
+Overall I was pleased with the result (and perhaps I should have stopped there...). The application collected and aggregated data from many sources including RSS feeds (google news, reddit, etc), weather sources (yahoo weather, weather.com), social networks (facebook, twitter, meetup, linkedin), chat protocols (IRC, slack), financial sources, and much more. While exploring the last I discovered the world of technical analysis and began incorporating many various market indicators into a financial analysis plugin for the project.
+</p>
+
+
+<h3>The Market Analysis Architecture</h3>
+<%= link_to image_tag("datachoppa-extractors.png", :style=>"width: 35%; margin-right: 10px; float: left;"),
+            image_path("datachoppa-extractors.png") %>
+<%= link_to image_tag("datachoppa-annotators.png", :style=>"width: 35%; margin-right: 10px; float: left;"),
+            image_path("datachoppa-annotators.png") %>
+
+<div style="clear: both"></div>
+
+<h3>Aroon Indicator (for example)</h3>
+
+<% code("cpp") do %>
+namespace DataChoppa{
+  namespace Market {
+    namespace Annotators {
+      class Aroon : public Annotator {
+        public:
+          double aroon_up(const Quote& quote, int high_offset, double range){
+            return ((range-1) - high_offset) / (range-1) * 100;
+          }
+
+          DoubleVector aroon_up(const Quotes& quotes, const Annotations::Extrema* extrema, int range){
+            return quotes.collect<DoubleVector>([extrema, range](const Quote& q, int i){
+                     return aroon_up(q, extrema->high_offsets[i], range);
+                   });
+          }
+
+          double aroon_down(const Quote& quote, int low_offset, double range){
+            return ((range-1) - low_offset) / (range-1) * 100;
+          }
+
+          DoubleVector aroon_down(const Quotes& quotes, const Annotations::Extrema* extrema, int range){
+            return quotes.collect<DoubleVector>([extrema, range](const Quote& q, int i){
+                     return aroon_down(q, extrema->low_offsets[i], range);
+                   });
+          }
+
+          AnnotationList annotate() const{
+            const Quotes& quotes = market->quotes;
+            if(quotes.size() < range) return AnnotationList();
+
+            const Annotations::Extrema* extrema = aroon_extrema(market, range);
+                    Annotations::Aroon* aroon = new Annotations::Aroon(range);
+                                        aroon->upper = aroon_up(market->quotes, extrema, range);
+                                        aroon->lower = aroon_down(market->quotes, extrema, range);
+            return aroon->to_list();
+          }
+      }; /// class Aroon
+    }; /// namespace Annotators
+  }; /// namespace Market
+}; // namespace DataChoppa
+<% end %>
+
+<p>
+The whole thing worked great, data was pulled in both real time and historical from yahoo finance (until they <%= link_to "discontinued", "http://www.financial-hacker.com/bye-yahoo-and-thank-you-for-the-fish/" %> it... from then it was google finance), the indicators were run, and results were output. Of course, making $$$ is not as simple as just crunching numbers, and being rather naive I just tossed the results of the indicators into weighted "buckets" and backtested based on simple boolean flags based on the computed signals against threshold values. Thankfully I backtested though as the performance was horrible as losses greatly exceed profits :-(
+</p>
+
+<p>
+At this point I should take a step back and note that my progress so far was the result of the availibilty of alot of great resources (we really live in the age of accelerated learning). Specifically the following are indispensible books &amp; sites for those interested in this subject:
+</p>
+
+<ul>
+  <li><%= link_to "stockcharts.com",          "http://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:aroon" %> - Information on any indicator can be found on this site with details on how it is computed and how it can be used</li>
+  <li><%= link_to "investopedia",             "http://www.investopedia.com/" %> - Sort of the <%= link_to "Wikipedia", "https://en.wikipedia.org/wiki/Main_Page" %> of investment knowledge, offers great high level insights into how market works and the financial world as it stands</li>
+  <li><%= link_to "Beyond Candlesticks",      "https://www.amazon.com/Beyond-Candlesticks-Japanese-Charting-Techniques/dp/047100720X" %> - Though candlestick patterns have limited use, this is great intro to the subject, and provides a good into to reading charts.</li>
+  <li><%= link_to "Nerds on Wall Street",     "http://nerdsonwallstreet.com/" %> - A great book detailing the history of computational finance. Definetly must read if you are new to the domain as it provides a concise high level history on how markets have worked the last few centuries and various computations techniques employed to <%= link_to "Seek Alpha", "https://en.wikipedia.org/wiki/Alpha_(finance)" %></li>
+  <li><%= link_to "High Probability Trading", "https://www.amazon.com/High-probability-trading-become-successful/dp/0071381562" %> - Provides insights as to the mentality and common pitfalls when trading.</li>
+</ul>
+
+<%= image_tag "beyond_candlesticks.jpg", :style=>"float: left; margin-right: 10px;" %><%= image_tag "nerds_on_wallstreet.jpg", :style=>"float: left; margin-right: 10px;" %><%= image_tag "high_prob_trading.jpg", :style=>"float: left; margin-right: 10px;" %>
+<div style="clear: both"></div>
+
+<p>
+The last book is an excellent resource which conveys the importance of money and risk management, as well as the necessity to combine in all factors, or as many factors as you can, when making financial decisions. In the end, I feel this is the gist of it, it's not soley a matter of luck (though there is an aspect of that to this), but rather patience, discipline, balance, and most importantly focus (similar to <%= link_to "Aikido", "https://en.wikipedia.org/wiki/Aikido" %> but that's a topic for another time). There is no shorting it (unless you're talking about the <%= link_to "assets", "short selling" %> themselves!), and if one does not have / take the necessary time to research and properly plan and out and execute strategies, they will most likely fail (as most do according to the <%= link_to "numbers", "http://www.businessinsider.com/what-percentage-of-traders-make-it-2011-6" %>).
+</p>
+
+<p>
+It was at this point that I decided to take a step back and restrategize, and having reflected and discussed it over with some acquaintances, I hedged my bets, cut my losses (tech-wise) and switched from C++ to another platform which would allow me prototype and execute ideas quicker. A good amount of time has gone into the C++ project and it worked great, but it did not make sense to continue via a slower development cycle when faster options are available (and afterall every engineer knows <b>time is our most precious resource</b>).
+</p>
+
+<p>
+Python and R are the natural choices for this project domain, as there is extensive support in both languages for market analysis, backtesting, and execution. I have used Python at <%= link_to "various", "https://github.com/movitto/snap" %>, <%= link_to "points", post_url("gtk programming w/ python") %> in the past so it was easy to hit the ground running; R was new but by this time no language really poses a serious surprise, the best way I can describe it is <i>spreadsheets on steroids</i> (not exactly, as rather than spreadsheets, data frames and matrixes are the core components, but one can imagine R as being similar to the central execution environment behind Excel, Matlab, or other statistical-software).
+</p>
+
+<p>
+I quickly picked up <%= link_to "quantmod", "https://www.quantmod.com/" %> and prototyped some volatility, trend-following, momentum, and other analysis signal generators in R, plotting them using the provided charting interface. R is a great language for this sort of data manipulation, one can quickly load up structured data from <%= link_to "CSV", "https://en.wikipedia.org/wiki/Comma-separated_values" %> files or online resources, <i>splice it and dice it</i>, <i>chunk it and dunk it</i>, <i>organize it and prioritize it</i>, according to any arithmatic, statistical, or linear/non-linear means which they desire. Quickly loading a new 'view' on the data is as simply as a line of code, and operations can quickly be chained together at high performance.
+</p>
+
+<h3>Volatility indicator in R (consolidated)</h3>
+
+<% code("R") do %>
+quotes <- load_default_symbol("volatility")
+
+quotes.atr <- ATR(quotes, n=ATR_RANGE)
+
+quotes.atr$tr_atr_ratio <- quotes.atr$tr / quotes.atr$atr
+quotes.atr$is_high      <- ifelse(quotes.atr$tr_atr_ratio > HIGH_LEVEL, TRUE, FALSE)
+
+# Also Generate ratio of atr to close price
+quotes.atr$atr_close_ratio <- quotes.atr$atr / Cl(quotes)
+
+# Generate rising, falling, sideways indicators by calculating slope of ATR regression line
+atr_lm       <- list()
+atr_lm$df    <- data.frame(quotes.atr$atr, Time = index(quotes.atr))
+atr_lm$model <- lm(atr ~ poly(Time, POLY_ORDER), data = atr_lm$df) # polynomial linear model
+
+atr_lm$fit   <- fitted(atr_lm$model)
+atr_lm$diff  <- diff(atr_lm$fit)
+atr_lm$diff  <- as.xts(atr_lm$diff)
+
+# Current ATR / Close Ratio
+quotes.atr.abs_per <- median(quotes.atr$atr_close_ratio[!is.na(quotes.atr$atr_close_ratio)])
+
+# plots
+chartSeries(quotes.atr$atr)
+addLines(predict(atr_lm$model))
+addTA(quotes.atr$tr, type="h")
+addTA(as.xts(as.logical(quotes.atr$is_high), index(quotes.atr)), col=col1, on=1)
+<% end %>
+
+<p>
+While it all works great, the R language itself offers very little syntactic sugar for operations not related to data-processing. While there are libraries for most common functionality found in many other execution environments, languages such as Ruby and Python, offer a "friendlier" experience to both novice and seasoned developers alike. Furthermore the process of data synchronization was a tedious step, I was looking for something that offered the flexability of DataChoppa to pull in and process live and historical data from a wide variety of sources, caching results on the fly, and using those results and analysis for subsequent operations.
+</p>
+
+<p>
+This all led me to developing a series of Python libraries targeted towards providing a configurable high level view of the market. <i>Intelligence Amplification</i> (<b>IA</b>) as opposed to <i>Artifical Intelligence</i> (<b>AI</b>) if you will (see <i>Nerds on Wall Street</i>).
+</p>
+
+<p>
+<b>marketquery.py</b> is a high level market querying library, which implements plugins used to resolve generic market queries for ticker time based data. One can used the interface to query for the lastest quotes or a specific range of them from a particular source, or allow the framework to select one for you.
+<p>
+
+<h3>Retrieve first 3 months of the last 5 years of GBPUSD data</h3>
+
+<% code("python") do %>
+  from marketquery.querier        import Querier
+  from marketbase.query.builder   import QueryBuilder
+  
+  sym = "GBPUSD"
+  
+  first_3mo_of_last_5yr = (QueryBuilder().symbol(sym)
+                                         .first("3months_of_year")
+                                         .last("5years")
+                                         .query)
+  
+  querier = Querier()
+  res     = querier.run(first_3mo_of_last_5yr)
+  
+  for query, dat in res.items():
+      print(query)
+      print(dat.raw[:1000] + (dat.raw[1000:] and '...'))
+<% end %>
+
+<h3>Retrieve last two month of hourly EURJPY data</h3>
+
+<% code("python") do %>
+  from marketquery.querier        import Querier
+  from marketbase.query.builder   import QueryBuilder
+  
+  sym = "EURJPY"
+  
+  two_months_of_hourly = (QueryBuilder().symbol(sym)
+                                        .last("2months")
+                                        .interval("hourly")
+                                        .query)
+  
+  querier = Querier()
+  res     = querier.run(two_months_of_hourly).raw()
+  print(res[:1000] + (res[1000:] and '...'))
+<% end %>
+
+<p>
+This provides a quick way to both lookup market data according to specific criteria, as well as cache it so that network resources are used effectively. All caching is configurable, and the user can define timeouts based on the target query, source, and/or data retrieved.
+</p>
+
+<p>
+From there the next level up is the technical analysis is was trivial to whip up the <b>tacache.py</b> module which uses the marketquery.py interface to retrieve raw data before feeding it into <%= link_to "TALib", "http://www.ta-lib.org/" %> caching the results. The same caching mechanisms offering the same flexability is employed, if one needs to process a large data set and/or subsets multiple times in a specified period, computational resources are not wasted (important when running on a metered cloud)
+</p>
+
+<h3>Computing various technical indicators</h3>
+
+<% code("python") do %>
+  from marketquery.querier       import Querier
+  from marketbase.query.builder  import QueryBuilder
+  
+  from tacache.runner            import TARunner
+  from tacache.source            import Source
+  from tacache.indicator         import Indicator
+  from talib                     import SMA
+  from talib                  import MACD
+  
+  ###
+  
+  res = Querier().run(QueryBuilder().symbol("AUDUSD")
+                                    .query)
+  
+  ###
+  
+  ta_runner = TARunner()
+  analysis  = ta_runner.run(Indicator(SMA),
+                            query_result=res)
+  print(analysis.raw)
+  
+  analysis  = ta_runner.run(Indicator(MACD),
+                            query_result=res)
+  macd, sig, hist = analysis.raw
+  print(macd)
+<% end %>
+
+<p>
+Finally ontop of all this I wrote <b>a2m.py</b>, a high level querying interface consisting of modules reporting on market volatility and trends as well as other metrics; python scripts which I could quickly execute to report the current and historical market state, making used of the underlying cached query and technical analysis data, periodically invalidated to pull in new/recent live data.
+</p>
+
+<h3>Example using a2m to compute volatility</h3>
+
+<% code("python") do %>
+  sym = "EURUSD"
+  self.resolver  = Resolver()
+  self.ta_runner = TARunner()
+
+  daily = (QueryBuilder().symbol(sym)
+                         .interval("daily")
+                         .last("year")
+                         .query)
+
+  hourly = (QueryBuilder().symbol(sym)
+                          .interval("hourly")
+                          .last("3months")
+                          .latest()
+                          .query)
+
+  current = (QueryBuilder().symbol(sym)
+                           .latest()
+                           .data_dict()
+                           .query)
+
+  daily_quotes   = resolver.run(daily)
+  hourly_quotes  = resolver.run(hourly)
+  current_quotes = resolver.run(current)
+
+  daily_avg  = ta_runner.run(Indicator(talib.SMA, timeperiod=120),  query_result=daily_quotes).raw[-1]
+  hourly_avg = ta_runner.run(Indicator(talib.SMA, timeperiod=30),  query_result=hourly_quotes).raw[-1]
+
+  current_val    = current_quotes.raw()[-1]['Close']
+  daily_percent  = current_val / daily_avg  if current_val &lt; daily_avg  else daily_avg  / current_val
+  hourly_percent = current_val / hourly_avg if current_val &lt; hourly_avg else hourly_avg / current_val
+<% end %>
+
+<%= image_tag "awesome_to_the_max.gif" %>
+ 
+<p>
+I would go onto use this to execute some Forex trades, again not in an algorithmic / automated manner, but rather based on combined knowledge from <%= link_to "fundamentals", "http://www.investopedia.com/ask/answers/131.asp" %> <%= link_to "research", "https://www.forexfactory.com/" %>,  as well as the high level technical data, and what was the result...
+</p>
+
+<%= image_tag "poor_squidward.jpg" %>
+
+<p>
+I jest, though I did lose a little $$$, it wasn't that much, and to be honest I feel this was due to lack of patience/discipline and other "novice" mistakes as discussed above. I did make about 1/2 of it back, and then lost interest. This all requires alot of focus and time, and I had already spent 2+ years worth of free time on this. With many other interests pulling my strings, I decided to sideline the project(s) alltogether and focus on my next crazy venture.
+</p>
+
+<h2>TLDR;</h2>
+
+<p>
+After some of consideration, I decided to <%= link_to "release", "http://github.com/movitto/dR" %> the R code I wrote under the MIT license. They are rather simple expirements though could be useful as a starting point for others new to the subject.
+
+As far as the Python modules and DataChoppa, I intended to eventually release them but aim to take a break first to focus on other efforts and then go back to the war room, to figure out the next stage of the strategy.
+</p>
+
+<p>
+And that's that! Enough number crunching, time to go out for a hike!
+</p>
+
+<%= image_tag "hiking_meme.jpg" %>

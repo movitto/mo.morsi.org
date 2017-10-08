@@ -312,7 +312,7 @@ Now onto the fun stuff!
 <% end %>
 
 <p>
-   Here we a section of 0xA8 length containing the following four file timestamps (more on this coversion below)
+   Here we a section of 0xA8 length containing the following four file timestamps (more on this conversion below)
 </p>
 
 <% code do %>
@@ -327,6 +327,7 @@ Now onto the fun stuff!
    <ul>
      <li>one of the first fields in any given Attribute contains an identifier detailing how the attribute should be parsed _or_</li>
      <li>the context is given by the Attribute's position in the list.</li>
+     <li>attributes corresponding to given meaning are referenced by address or identifier elsewhere</li>
    </ul>
 </p>
 
@@ -397,7 +398,7 @@ Now onto the fun stuff!
 </p>
 
 <p>
-    We also see that this Record corresponds to a file I created on disk as the key is the Record flag (0x10030) followed by the filename (mofile1.txt).
+    We also see that this Record corresponds to a file I created on disk as the key is the File Metadata flag (0x10030) followed by the filename (mofile1.txt).
 </p>
     
 <p>
@@ -611,7 +612,7 @@ Now onto the fun stuff!
 </p>
 
 <p>
-  - <b>SubDirectories</b>: these are simply Records in the directory's Attribute List whose key contains the 0x20030 flag as well as the subdir name.
+  - <b>SubDirectories</b>: these are simply Records in the directory's Attribute List whose key contains the Directory Metadata flag (0x20030) as well as the subdir name.
 </p>
   
 <p>
