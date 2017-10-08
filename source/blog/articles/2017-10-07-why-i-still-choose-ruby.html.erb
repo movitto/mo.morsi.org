@@ -1,0 +1,106 @@
+---
+
+title: Why I still choose Ruby
+date: 2017-10-07 13:33 UTC
+tags: 
+
+---
+
+<p>
+With the plethora of languages available to developers, I wanted to do a quick follow-up post as to why given my experience in many different environments, Ruby is still my goto language for all my computational needs!
+</p>
+
+<%= image_tag "prg_mtn.jpg" %>
+
+<p>
+While different languages offer different solutions in terms of syntax support, memory managment, runtime guarantees, and execution flows; the underlying arithmatic, logical, and I/O hardware being controlled is the same. Thus in theory, given enough time and optimization the performance differences between languages should go to 0 as computational power and capacity increases / goes to infinity (yes, yes, Moore's law and such, but lets ignore that for now).
+</p>
+
+<p>
+Of course different classes of problem domains impose their own requirements,
+</p>
+
+<ul>
+  <li>real time processing depends low level optimizations that can only be done in assembly and C,</li>
+  <li>data crunching and process parallelization often needs minimal latency and optimized runtimes, something which you only get with compiled/static-typed languages such as C++ and Java,</li>
+  <li>and higher level languages such as Ruby, Python, Perl, and PHP are great for rapid development cycles and providing high level constructs where complicated algorithms can be invoked via elegant / terse means.</li>
+</ul>
+
+<p>
+But given the rapid rate of hardware performance in recent years, whole classes of problems which were previously limited to 'lower-level' languages such as C and C++ are now able to be feasbily implemented in higher level languages.
+</p>
+
+<%= image_tag "computer_power.gif" %>
+
+<p>
+(<%= link_to "source", "https://www.frc.ri.cmu.edu/~hpm/talks/revo.slides/power.aug.curve/power.aug.html" %>)
+</p>
+
+<p>
+Thus these days we see high performance financial applications being implemented in Python, major website with hundreds of thousands / millions of users a day being implemented in Ruby and Javascript, massive data sets being crunched in R, and much more.
+</p>
+
+<p>
+So putting the performance aspect of these environments aside we need to look at the syntatic nature of these languages as well as the features and tools they offer for developers. The last is the easiest to tackle as these days most notable languages come with compilers/interpreters, debuggers, task systems, test suites, documentation engines, and much more. This was not always the case though as Ruby was one of the first languages that pioneered builtin package management through <%= link_to "rubygems", "http://rubygems.org" %>, and integrated dependency solutions via <%= link_to "gemspecs", "http://guides.rubygems.org/specification-reference/" %>, <%= link_to "bundler", "http://bundler.io/" %>, etc. <%= link_to "CPAN", "https://www.cpan.org/" %> and a few other language-specific online repositories existed before, but with Ruby you got integration that was a core part of the runtime environment and community support. Ruby is still known to be on the leading front of integrated and end-to-end solutions.
+</p>
+
+<p>
+Syntax differences is a much more difficult subject to objectively dicuss as much of it comes down to programmer preference, but it would be hard to object to the statement that Ruby is one of the most <%= link_to "Object Oriented", "https://en.wikipedia.org/wiki/Object-oriented_design" %> languages out there. It's not often that you can call the string conversion or type identification methods on <b>ALL</b> constructs, variables, constants, types, literals, primitives, etc:
+</p>
+
+<% code("ruby") do %>
+  > 1.to_s
+  => "1"
+  > 1.class
+  => Integer
+<% end %>
+
+<p>
+Ruby also provides logical flow control constructs not seen in many other languages. For example in addition to the standard <b>if condition then dosomething</b> paradigm, Ruby allows the user to specify the result after the predicate, eg <b>dosomething if condition</b>. This simple change allows developers to express concepts in a natural manner, akin to how they would often be desrcibed between humans. In addition to this, other simple syntax conveniences include:
+</p>
+
+<ul>
+  <li>The <b>unless</b> keyword, simply evaluating to <b>if not</b>
+    <% code("ruby") do %>
+      file = File.open("/tmp/foobar", "w")
+      file.write("Hello World") unless file.exist?
+    <% end %>
+  </li>
+  <li>Methods are allowed to end with <b>?</b> and <b>!</b> which is great for specifying immutable methods (eg. <b>Socket.open?</b>), mutable methods and/or methods that can thrown an exception (eg. <b>DBRecord.save!</b>)</li>
+  <li>Inclusive and exclusive <b>ranges</b> can be specified via parenthesis and two or three elipses. So for example:
+    <% code("ruby") do %>
+      > (1..4).include?(4)
+      => true
+      > (1...4).include?(4)
+      => false
+    <% end %>
+  </li>
+  <li>The <b>yield</b> keywork makes it trivial for <b>any</b> method to accept and invoke a callback during the course of its lifetime</li>
+  <li>And much more</li>
+</ul>
+
+<p>
+Expanding upon the last, blocks are a core concept in Ruby, once which the language nails right on the head. Not only can any function accept an anonymous callback block, blocks can be bound to parameters and operated on like any other data. You can check the number of parameters the callbacks accept by invoking <b>block.arity</b>, dynamically dispatch blocks, save them for later invokation and much more.
+</p>
+
+<p>
+Due to the asynchronous nature of many software solutions (many problems can be modeled as asynchronous tasks) blocks fit into many Ruby paradigms, if not as the primary invocation mechanism, then as an optional mechanism so as to enforce various runtime guarantees:
+</p>
+
+<% code("ruby") do %>
+  File.open("/tmp/foobar"){ |file|
+    # do whatever with file here
+  }
+
+  # File is guaranteed to be closed here, we didn't have to close it ourselves!
+<% end %>
+
+<p>
+By binding block contexts, Ruby facilitates implementing tightly tailored solutions for many problem domains via <%= link_to "DSLs", "https://www.leighhalliday.com/creating-ruby-dsl" %>. Ruby DSLs exists for <%= link_to "web development", "http://www.sinatrarb.com/" %>, <%= link_to "system", "https://puppet.com/" %> <%= link_to "orchestration", "https://www.chef.io/" %>, <%= link_to "workflow management", "https://www.vagrantup.com/" %>, and much more. This of course is not to mention the other frameworks, such as the massively popular <%= link_to "Rails", "http://rubyonrails.org/" %>, as well as other widely-used technologies such as <%= link_to "Metasploit", "https://github.com/rapid7/metasploit-framework" %>
+</p>
+
+<p>
+Finally, programming in Ruby is <b>just fun</b>. The language is condusive to expressing complex concepts elegantly, jives with many different programming paradigms and styles, and offers a quick prototype to production workflow that is intuitive for both novice and seasoned developers. Nothing quite scratches that itch like Ruby!
+</p>
+
+<%= image_tag "doge-ruby.jpg" %>
