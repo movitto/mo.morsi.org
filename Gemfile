@@ -20,3 +20,6 @@ gem "builder", "~> 3.0"
 
 # for summary
 gem "nokogiri"
+
+# XXX middleman needs json (?)
+gem "json"
