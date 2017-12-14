@@ -1,0 +1,190 @@
+---
+
+title: RETerm to The Terminal with a GUI
+date: 2017-12-13 07:54 UTC
+tags: interfaces, ncurses, ruby
+
+---
+
+<p>
+When it comes to user interfaces, most (if not all) software applications can be classified into one of three categories:
+</p>
+
+<ul>
+  <li>Text Based - whether they entail one-off commands, interactive terminals (<%= link_to "REPL", "https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop" %>), or text-based visual widgets, these saw a major rise in the 50s-80s though were usurped by GUIs in the 80s-90s</li>
+  <li>Graphical - GUIs, or Graphical User Interfaces, facilitate creating visual windows which the user may interact with via the mouse or keyboard. There are many different <%= link_to "GUI frameworks", "https://en.wikipedia.org/wiki/List_of_platform-independent_GUI_libraries" %> available for various platforms</li>
+  <li>Web Based - A special type of graphical interface rendered via a web browser, many applications provide their frontend via HTML, Javascript, &amp; CSS</li>
+</ul>
+
+<%= image_tag "reterm/interfaces-comparison.png", :title => "Interfaces Comparison" %>
+
+<p>
+In recent years modern interface trends seem to be moving in the direction of the Web User Interfaces (WUI), with increasing numbers of apps offering their functionality primarily via HTTP. That being said GUIs and TUIs (Text User Interfaces) are still an entrenched use case for various reasons:
+</p>
+
+<ul>
+  <li>Web browsers, servers, and network access may not be available or permissable on all systems</li>
+  <li>Systems need mechanisms to access and interact with the underlying components, incase higher level constructs, such as graphics and network subsystems fail or are unreliable</li>
+  <li>Simpler text &amp; graphical implementations can be coupled and optimized for the underlying operational environment without having to worry about portability and cross-env compatability. Clients can thus be simpler and more robust.</li>
+  </li>
+</ul>
+
+<p>
+Finally there is a certain pleasing ascethic to simple text interfaces that you don't get with GUIs or WUIs. Of course this is a human-preference sort-of-thing, but it's often nice to return to our computational roots as we move into the future of complex <%= link_to "gesture", "https://en.wikipedia.org/wiki/Gesture_recognition" %> and <%= link_to "voice controlled", "https://en.wikipedia.org/wiki/Speech_recognition" %> computer interactions.
+</p>
+
+<%= image_tag "reterm/scifi-terminal.jpg", :title => "A concept interface" %>
+
+<hr/>
+
+<p>
+When working on a recent side project (to be announced), I was exploring various concepts as to the user interface which to throw ontop of it. Because other solutions exist in the domain which I'm working in (and for other reasons), I wanted to explore something novel as far as user interaction, and decided to expirement with a text-based approach. <%= link_to "ncurses", "https://en.wikipedia.org/wiki/Ncurses" %> is the goto library for this sort of thing, being available on most modern platforms, along with many widget libraries and high level wrappers
+</p>
+
+<%= image_tag "reterm/ncurses.gif", :title => "A ncurses UI" %>
+
+<p>
+Unfortunately ncurses comes with alot of boilerplate and it made sense to seperate that from the project I intend to use this for. Thus the <b><%= link_to "RETerm", "http://github.com/movitto/reterm" %></b> library was born, with the intent to provide a high level <%= link_to "DSL", "https://en.wikipedia.org/wiki/Domain-specific_language" %> to implmenent terminal interfaces and applications (... in Ruby of couse <3 !!!)
+</p>
+
+<%= image_tag "reterm/reterm-sc1.png" %>
+
+<p>
+<b>RETerm</b>, aka the <b>Ruby Enhanced TERMinal</b> allows the user to incorporate high level text-based widgets into an orgnaized terminal window, with seemless standardized keyboard interactions (mouse support is on the roadmap to be added). So for example, one could define a window containing a child widget like so:
+</p>
+
+<% code("ruby") do %>
+require 'reterm'
+include RETerm
+
+value = nil
+
+init_reterm {
+  win = Window.new :rows => 10,
+                   :cols => 30
+  win.border!
+  update_reterm
+
+  slider = Components::VSlider.new
+  win.component = slider
+  value = slider.activate!
+}
+
+puts "Slider Value: #{value}"
+<% end %>
+
+<p>
+This would result in the following interface containing a vertical slider:
+</p>
+
+<%= image_tag "reterm/reterm-sc2.png" %>
+
+<p>RETerm ships with many built widgets including:</p>
+
+<p>
+Text Entry
+</p>
+
+<%= image_tag "reterm/reterm-sc3.png" %>
+
+<p>
+Clickable Button
+</p>
+
+<%= image_tag "reterm/reterm-sc4.png" %>
+
+<p>
+Radio Switch/Rocker/Selectable List
+</p>
+
+<%= image_tag "reterm/reterm-sc5.png" %>
+<%= image_tag "reterm/reterm-sc6.png" %>
+<%= image_tag "reterm/reterm-sc7.png" %>
+
+<p>
+Sliders (both horizontal and vertical)
+</p>
+
+<p>
+Dial
+</p>
+
+<p>
+Ascii Text (with many fonts via <%= link_to "artii/figlet", "http://www.figlet.org/" %>)
+</p>
+
+<%= image_tag "reterm/reterm-sc8.png" %>
+
+<p>
+Images (via <%= link_to "drawille", "https://github.com/maerch/ruby-drawille" %>)
+</p>
+
+<%= image_tag "reterm/reterm-sc9.png" %>
+
+<hr/>
+
+<p>RETerm is now available via <%= link_to "rubygems", "http://rubygems.org/gems/reterm" %>. To install, simplly:
+</p>
+
+<% code("bash") do %>
+  $ gem install reterm
+<% end %>
+
+<p>
+<strike>That's All Folks</strike>... but wait there is more!!! Afterall:
+<p>
+
+<%= image_tag "reterm/delorian-meme.jpg" %>
+
+<p>
+For a bit of a value-add, I decided to implement a standard schema where text interfaces could be described in a JSON config file and loaded by the framework, similar to xml schemas which <%= link_to "GTK", "https://en.wikipedia.org/wiki/GTK%2B" %> and <%= link_to "Android", "https://developer.android.com/guide/topics/ui/declaring-layout.html" %> use for their interfaces. One can simply describe their interface in JSON and the framework will instantiate the corresponding text interface:
+</p>
+
+<% code("json") do %>
+{
+  "window" : {
+    "rows"      : 10,
+    "cols"      : 50,
+    "border"    : true,
+    "component" : {
+      "type" : "Entry",
+      "init" : {
+        "title" : "<C>Demo",
+        "label" : "Enter Text: "
+      }
+    }
+  }
+}
+<% end %>
+
+<%= image_tag "reterm/reterm-sc10.png" %>
+
+<p>
+To assist in generating this schema, I implemented a graphical designer, where components can be dragged and dropped into a 2D canvas to layout the interface.
+</p>
+
+<p>That's right, <b>you can now use a GUI based application to design a text-based interface</b>.
+</p>
+
+<%= image_tag "reterm/retro-meme.jpg" %>
+
+<p>
+The Designer itself can be found in the same repo as the RETerm project, loaded in the "designer/" subdir.
+</p>
+
+<%= image_tag "reterm/reterm-designer.png", :title => "RETerm Designer" %>
+
+<p>
+To use if you need to install <%= link_to "visualruby", "http://visualruby.net/" %> (a high level wrapper to <%= link_to "ruby-gnome", "https://ruby-gnome2.osdn.jp/" %>) like so:
+</p>
+
+<% code("bash") do %>
+  $ gem install visualruby
+<% end %>
+
+<p>
+And that's it! (for real this time) This was certainly a fun side-project to a side-project (toss in a third "side-project" if you consider the designer to be its own thing!). As I to return to the project using RETerm, I aim to revisit it every so often, adding new features, widgets, etc....
+</p>
+
+<p><b>EOF</b></p>
+<p><b>CLS</b></p>
