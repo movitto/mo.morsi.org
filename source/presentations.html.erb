@@ -3,19 +3,10 @@ title: Presentations
 ---
 
 <div class="article">
-  <div id="presentations_content" style="float: left; width: 40%">
+  <div id="presentations_content">
     <h2>Presentations</h2>
-    <p>
-    <b>Note</b>: <i>The following is only a subset of the presentations I have given<br/>
-    (those which I have found content for)</i>
 
-    <style>
-      ul li{
-        margin-bottom: 10px;
-      }
-    </style>
-
-    <ul style="list-style-type: circle;">
+    <ul id="presentation_list">
       <li>
         <%= link_to "BlockChain Babble", "blockchain_babble/index.html" %><br/>
         Syracuse Software Development Meetup @ The Tech Garden
@@ -127,15 +118,4 @@ title: Presentations
       </li>
     </ul>
   </div>
-
-  <canvas id="presentation_canvas" width="750" height="500" style="float: right; margin-right: 75px; margin-top: 100px;"></canvas>
-
-  <script type="text/javascript">
-    $(document).ready(function(){
-      var d = dwitter("#presentation_canvas");
-          d(d.wire_ball);
-    });
-  </script>
-
-  <div style="clear: both"></div>
 </div>

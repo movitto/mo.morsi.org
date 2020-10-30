@@ -30,17 +30,22 @@ a {
  border-radius: 5px;
 }
 
-.article_tags {
-  background-color: gray;
-  color: white;
-  float: right;
-  padding: 5px;
-  border-radius: 5px;
-  margin-top: 10px;
+.article_header{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.article_date{
+  font-weight: bold;
+}
+
+.article_tags{
+  display: flex;
+  justify-content: flex-end;
 }
 
 .article_tags a{
-  color: white;
   text-decoration: none;
 }
 
@@ -59,6 +64,10 @@ a {
   text-decoration: none;
 }
 
+#nav_links{
+  display: flex;
+  align-items: center;
+}
 
 .nav_item {
   padding-left: 10px;
@@ -73,15 +82,12 @@ a {
 
 
 #page_nav {
-  background-color: #0C141F;
   color: #D8DAE7;
-  display: inline-block;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-radius: 5px;
-  position: fixed;
-  bottom: 0px;
-  right: 30px;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  min-height: 50px;
+  font-size: 1.5rem;
 }
 
 #page_nav a{
@@ -114,61 +120,15 @@ a {
   cursor: pointer;
 }
 
-#search_widget {
-  display: none;
-
-  position: fixed;
-  bottom: 0px;
-  right: 0;
-
-  width:  300px;
-
-  padding: 3px;
-  margin: 3px;
-  border-radius: 5px;
-  background-color: #0C141F;
-
-  z-index: 1;
-}
-
-.article-date {
-  float: right;
-  margin-left: 10px;
-}
-
-.article-date span {
-  width: 100px;
-  display: block;
-  font: 18px/24px "Helvetica Neue", Helvetica, Arial, sans-serif;
-  color: #666;
-  text-align: center;
-}
-
-.article-date .month {
-  background: #ccc;
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
-}
-
-.article-date .day {
-  font-size: 44px;
-  line-height: 50px;
-  background: #333;
-  color: #eee;
-  text-shadow: 2px 2px 2px #888;
-}
-
-.article-date .year {
-  background: #ccc;
-  border-bottom-left-radius: 10px;
-  border-bottom-right-radius: 10px;
-}
-
-.article-date .sep {
-  display: none;
-}
-
 .hljs{
   white-space: pre;
   padding-bottom: 15px;
+}
+
+#presentation_list{
+  list-style-type: circle;
+}
+
+#presentation_list li{
+  margin-bottom: 10px;
 }

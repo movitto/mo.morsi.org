@@ -23,7 +23,6 @@
     <!-- my stuff -->
     <%= stylesheet_link_tag "site" %>
     <%= javascript_include_tag "site" %>
-    <%= javascript_include_tag "dwitter" %>
 
     <!-- set custom stylesheets per page -->
     <% [current_page.data.stylesheets,
@@ -38,18 +37,17 @@
     <!-- global nav -->
     <%= partial "nav" %>
 
-    <!-- search widget -->
-    <%= partial "search_widget" %>
-
-    <!-- XXX include article container/date/title on specific article pages -->
+    <!-- XXX include article container, header, footer on specific article pages -->
     <div id="content">
       <% if current_page.page_id =~ /articles\/.*/ %>
         <div class="article">
-          <%= partial :article_date, :locals => {:article => current_page} %>
-          <%= partial :article_tags, :locals => {:article => current_page} %>
-          <h1><%= current_page.title %></h1>
+          <%= partial :article_header,
+                      :locals => {:article => current_page} %>
 
           <%= yield %>
+
+          <%= partial :article_footer,
+                      :locals => {:article => article} %>
         </div>
 
       <% else %>

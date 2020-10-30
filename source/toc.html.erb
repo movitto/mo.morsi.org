@@ -3,15 +3,18 @@ title: Table Of Contents
 ---
 
 <div class="article">
-  <h2>Table Of Contents</h2>
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <h2>Table Of Contents</h2>
 
-  <div id="toc_content">
-    <ul>
-    <% blog.articles.each_with_index do |article, i| %>
-      <li>
-        <%= link_to article.title, article %> - <%= article.date.strftime("%D") %>
-      </li>
-    <% end %>
-    </ul>
+    <div style="flex-basis: 50%">
+      <%= partial "search_widget" %>
+    </div>
   </div>
+
+  <ul>
+  <% blog.articles.each_with_index do |article, i| %>
+    <li>
+      <%= link_to article.title, article %> - <%= article.date.strftime("%D") %>
+    </li>
+  <% end %>
 </div>
