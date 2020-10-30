@@ -1,0 +1,43 @@
+<html>
+	<head>
+		<title>Mo's Meme Machine</title>
+      <script type="text/javascript" src="md5.min.js">
+		</script>
+    <script type="text/javascript">
+			var orig = null;
+
+      function check(){
+        const Http = new XMLHttpRequest();
+        const url='content.jpg?' + Math.random();
+        Http.open("GET", url);
+        Http.send();
+
+        Http.onreadystatechange = function(){
+		      if(this.readyState == 4 && this.status == 200){
+		        var chksum = md5(Http.responseText);
+		        if(orig == null || orig == chksum){
+			        orig = chksum;
+				      setTimeout(check, 10000);
+				    }else{
+				      location.reload();
+				    }
+          }
+        }
+      }
+
+	    window.onload = function(){
+        document.getElementById("content").src = "content.jpg?" + Math.random();
+		    check();
+      }
+    </script>
+	</head>
+
+	<body style="color: white; background-color: black; text-align: center">
+		<h1>Mo's Meme Machine</h1>
+		<img id="content" style="height: 75%" />
+
+    <form action="https://formspree.io/devnullproductions@gmail.com" method="POST" style="margin-top: 15px;"/>
+      <input type="submit" value="Give Me A New Meme!" name="new_meme" onclick="alert('Right Away!')" />
+		</form>
+	</body>
+</html>
