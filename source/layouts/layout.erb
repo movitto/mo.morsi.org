@@ -13,8 +13,6 @@
 
     <title><%= current_page.data.title || "mo.morsi.org" %></title>
 
-    <%= stylesheet_link_tag "http://fonts.googleapis.com/css?family=Orbitron" %>
-
     <!-- jquery -->
     <%= javascript_include_tag "jquery-3.2.1.min" %>
     <%= javascript_include_tag "jquery-ui.min" %>
@@ -35,28 +33,28 @@
 
     <%= favicon_tag 'images/favicon.png' %>
   </head>
+
   <body>
     <!-- global nav -->
     <%= partial "nav" %>
-
-    <!-- global tag widget -->
-    <%= partial "tag_widget" %>
 
     <!-- search widget -->
     <%= partial "search_widget" %>
 
     <!-- XXX include article container/date/title on specific article pages -->
-    <% if current_page.page_id =~ /articles\/.*/ %>
-      <div class="article">
-        <%= partial :article_date, :locals => {:article => current_page} %>
-        <%= partial :article_tags, :locals => {:article => current_page} %>
-        <h1><%= current_page.title %></h1>
+    <div id="content">
+      <% if current_page.page_id =~ /articles\/.*/ %>
+        <div class="article">
+          <%= partial :article_date, :locals => {:article => current_page} %>
+          <%= partial :article_tags, :locals => {:article => current_page} %>
+          <h1><%= current_page.title %></h1>
 
+          <%= yield %>
+        </div>
+
+      <% else %>
         <%= yield %>
-      </div>
-
-    <% else %>
-      <%= yield %>
-    <% end %>
+      <% end %>
+    </div>
   </body>
 </html>

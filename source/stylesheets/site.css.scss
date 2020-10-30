@@ -27,7 +27,6 @@ a {
  margin: 10px;
  background-color: white;
  box-shadow: 0 0 10px gray;
- width: 75%;
  border-radius: 5px;
 }
 
@@ -47,14 +46,12 @@ a {
 
 #nav{
   color: #D8DAE7;
-  position: fixed;
-  top: 0;
-  right: 0;
-  border: 1px solid green;
-  border-radius: 15px;
   padding: 5px;
   margin: 5px;
   background-color: #0C141F;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 #nav a{
@@ -66,14 +63,11 @@ a {
 .nav_item {
   padding-left: 10px;
   text-align: right;
-  display: block;
   font-size: 1.25em;
 }
 
 #nav h1 {
-  font-family: Orbitron;
-  font-size: 2.25em;
-  padding-right: 10px;
+  display: inline-block;
   margin: 0px;
 }
 
@@ -85,7 +79,6 @@ a {
   padding-left: 5px;
   padding-right: 5px;
   border-radius: 5px;
-  border: 1px solid green;
   position: fixed;
   bottom: 0px;
   right: 30px;
@@ -96,38 +89,6 @@ a {
   text-decoration: none;
 }
 
-#tag_widget {
-  position: fixed;
-  top:  250px;
-  right: 0;
-
-  color: #D8DAE7;
-  border: 1px solid green;
-  border-radius: 15px;
-  padding: 5px;
-  margin: 5px;
-  background-color: #0C141F;
-
-  width:  200px;
-  height: 300px;
-  overflow-x: hidden;
-  overflow-y: auto;
-}
-
-#tag_widget h1{
-  font-family: Orbitron;
-  font-size: 1.25em;
-  padding-right: 10px;
-  margin: 0px;
-}
-
-#tag_widget a{
-  color: #D8DAE7;
-  text-decoration: none;
-  display: inline-block;
-  float: right;
-}
-
 #search_toggle {
   position: fixed;
   bottom: 0;
@@ -135,7 +96,6 @@ a {
 
   padding-left: 5px;
   padding-right: 5px;
-  border: 1px solid green;
   border-radius: 5px;
   background-color: #0C141F;
   color: #D8DAE7;
@@ -165,7 +125,6 @@ a {
 
   padding: 3px;
   margin: 3px;
-  border: 1px solid green;
   border-radius: 5px;
   background-color: #0C141F;
 
