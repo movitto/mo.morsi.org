@@ -12,21 +12,23 @@ Now that we have the '<%= link_to "mount", post_url("3D Printing Fun") %>' compo
 It can be found <%= link_to "here", "https://github.com/movitto/retroflix/" %> and you can see some screens below:
 </p>
 
+<div class="article_imgs">
 <%= link_to image_tag("https://raw.githubusercontent.com/wiki/movitto/retroflix/screens/my_library.png",
-                      :style => "width: 20%; float: left;"),
+                      :class => "article_img"),
                       "https://raw.githubusercontent.com/wiki/movitto/retroflix/screens/my_library.png" %>
 
 <%= link_to image_tag("https://raw.githubusercontent.com/wiki/movitto/retroflix/screens/game_info.png",
-                      :style => "width: 20%; float: left; margin-left: 10px;"),
+                      :class => "article_img"),
                       "https://raw.githubusercontent.com/wiki/movitto/retroflix/screens/game_info.png" %>
 
 <%= link_to image_tag("https://raw.githubusercontent.com/wiki/movitto/retroflix/screens/game_previews.png",
-                      :style => "width: 20%; float: left; margin-left: 10px;"),
+                      :class => "article_img"),
                       "https://raw.githubusercontent.com/wiki/movitto/retroflix/screens/game_previews.png" %>
 
 <%= link_to image_tag("https://raw.githubusercontent.com/wiki/movitto/retroflix/screens/game_list.png",
-                      :style => "width: 20%; float: left; margin-left: 10px;"),
+                      :class => "article_img"),
                       "https://raw.githubusercontent.com/wiki/movitto/retroflix/screens/game_list.png" %>
+</div>
 
 
 <div style="clear: both"></div>

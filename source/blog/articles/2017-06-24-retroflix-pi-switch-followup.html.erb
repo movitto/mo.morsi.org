@@ -19,9 +19,10 @@ tags: retro gaming, raspberry pi
 <ul id="rpi_setup">
   <li><p>To start off, increase your GPU memory. This we be needed to run games with any reasonable performance. This can be accomplished through the Raspberry PI configuration interface.</p>
 
-      <%= link_to image_tag("rpi-setup1.png", :style=> "float: left; width: 45%; margin-bottom: 10px;"), image_path("rpi-setup1.png") %>
-      <%= link_to image_tag("rpi-setup2.png", :style=> "float: left; width: 45%; margin-bottom: 10px; padding-left: 10px;"), image_path("rpi-setup2.png") %>
-      <div style="clear: both"></div>
+      <div class="article_imgs">
+        <%= link_to image_tag("rpi-setup1.png", :class=> "article_img"), image_path("rpi-setup1.png") %>
+        <%= link_to image_tag("rpi-setup2.png", :class=> "article_img"), image_path("rpi-setup2.png") %>
+      </div>
       
       <p>Here you can also overclock your PI if your model supports it (v3.0 does not as evident w/ the screenshot, though there are <%= link_to "workarounds", "https://www.raspberrypi.org/forums/viewtopic.php?f=66&t=138123" %>)</p>
   </li>
@@ -31,10 +32,11 @@ tags: retro gaming, raspberry pi
     If you are having trouble w/ the PI output resolution being too large / small for your tv, try adjusting the aspect ratio on your set. Previously mine was set to "theater mode", cutting off the edges of the device output. Resetting it to normal resolved the issue.
     </p>
 
-    <%= link_to image_tag("rpi-setup3.jpg", :style=> "float: left; width: 25%; padding-left: 10px; height: 250px;"), image_path("rpi-setup3.jpg") %>
-    <%= link_to image_tag("rpi-setup5.jpg", :style=> "float: left; width: 25%; padding-left: 10px;"), image_path("rpi-setup5.jpg") %>
-    <%= link_to image_tag("rpi-setup4.jpg", :style=> "float: left; width: 25%; padding-left: 10px;"), image_path("rpi-setup4.jpg") %>
-    <div style="clear: both"></div>
+    <div class="article_imgs">
+      <%= link_to image_tag("rpi-setup3.jpg", :class=> "article_img"), image_path("rpi-setup3.jpg") %>
+      <%= link_to image_tag("rpi-setup5.jpg", :class=> "article_img"), image_path("rpi-setup5.jpg") %>
+      <%= link_to image_tag("rpi-setup4.jpg", :class=> "article_img"), image_path("rpi-setup4.jpg") %>
+    </div>
   </li>
 
   <li>
@@ -63,7 +65,7 @@ tags: retro gaming, raspberry pi
       <li>
         In the Raspberry PI bluetooth menu, click 'make discoverable' (this can also be accomplished via the bluetoothctl command prompt with the <b>discoverable on</b> command)
 
-        <%= link_to image_tag("rpi-setup6.png", :style=> ""), image_path("rpi-setup6.png") %>
+        <%= link_to image_tag("rpi-setup6.png", :class=> "article_img"), image_path("rpi-setup6.png") %>
       </li>
 
       <li>Finally restart the controller and it should autoconnect!</li>

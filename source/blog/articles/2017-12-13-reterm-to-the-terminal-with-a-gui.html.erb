@@ -16,7 +16,7 @@ When it comes to user interfaces, most (if not all) software applications can be
   <li>Web Based - A special type of graphical interface rendered via a web browser, many applications provide their frontend via HTML, Javascript, &amp; CSS</li>
 </ul>
 
-<%= image_tag "reterm/interfaces-comparison.png", :title => "Interfaces Comparison" %>
+<%= image_tag "reterm/interfaces-comparison.png", :title => "Interfaces Comparison", :class => "article_img" %>
 
 <p>
 In recent years modern interface trends seem to be moving in the direction of the Web User Interfaces (WUI), with increasing numbers of apps offering their functionality primarily via HTTP. That being said GUIs and TUIs (Text User Interfaces) are still an entrenched use case for various reasons:
@@ -33,7 +33,7 @@ In recent years modern interface trends seem to be moving in the direction of th
 Finally there is a certain pleasing ascethic to simple text interfaces that you don't get with GUIs or WUIs. Of course this is a human-preference sort-of-thing, but it's often nice to return to our computational roots as we move into the future of complex <%= link_to "gesture", "https://en.wikipedia.org/wiki/Gesture_recognition" %> and <%= link_to "voice controlled", "https://en.wikipedia.org/wiki/Speech_recognition" %> computer interactions.
 </p>
 
-<%= image_tag "reterm/scifi-terminal.jpg", :title => "A concept interface" %>
+<%= image_tag "reterm/scifi-terminal.jpg", :title => "A concept interface", :class => "article_img" %>
 
 <hr/>
 
@@ -41,13 +41,13 @@ Finally there is a certain pleasing ascethic to simple text interfaces that you 
 When working on a recent side project (to be announced), I was exploring various concepts as to the user interface which to throw ontop of it. Because other solutions exist in the domain which I'm working in (and for other reasons), I wanted to explore something novel as far as user interaction, and decided to expirement with a text-based approach. <%= link_to "ncurses", "https://en.wikipedia.org/wiki/Ncurses" %> is the goto library for this sort of thing, being available on most modern platforms, along with many widget libraries and high level wrappers
 </p>
 
-<%= image_tag "reterm/ncurses.gif", :title => "A ncurses UI" %>
+<%= image_tag "reterm/ncurses.gif", :title => "A ncurses UI", :class => "article_img" %>
 
 <p>
 Unfortunately ncurses comes with alot of boilerplate and it made sense to seperate that from the project I intend to use this for. Thus the <b><%= link_to "RETerm", "http://github.com/movitto/reterm" %></b> library was born, with the intent to provide a high level <%= link_to "DSL", "https://en.wikipedia.org/wiki/Domain-specific_language" %> to implmenent terminal interfaces and applications (... in Ruby of couse <3 !!!)
 </p>
 
-<%= image_tag "reterm/reterm-sc1.png" %>
+<%= image_tag "reterm/reterm-sc1.png", :class => "article_img" %>
 
 <p>
 <b>RETerm</b>, aka the <b>Ruby Enhanced TERMinal</b> allows the user to incorporate high level text-based widgets into an orgnaized terminal window, with seemless standardized keyboard interactions (mouse support is on the roadmap to be added). So for example, one could define a window containing a child widget like so:
@@ -77,7 +77,7 @@ puts "Slider Value: #{value}"
 This would result in the following interface containing a vertical slider:
 </p>
 
-<%= image_tag "reterm/reterm-sc2.png" %>
+<%= image_tag "reterm/reterm-sc2.png", :class => "article_img" %>
 
 <p>RETerm ships with many built widgets including:</p>
 
@@ -85,21 +85,21 @@ This would result in the following interface containing a vertical slider:
 Text Entry
 </p>
 
-<%= image_tag "reterm/reterm-sc3.png" %>
+<%= image_tag "reterm/reterm-sc3.png", :class => "article_img" %>
 
 <p>
 Clickable Button
 </p>
 
-<%= image_tag "reterm/reterm-sc4.png" %>
+<%= image_tag "reterm/reterm-sc4.png", :class => "article_img" %>
 
 <p>
 Radio Switch/Rocker/Selectable List
 </p>
 
-<%= image_tag "reterm/reterm-sc5.png" %>
-<%= image_tag "reterm/reterm-sc6.png" %>
-<%= image_tag "reterm/reterm-sc7.png" %>
+<%= image_tag "reterm/reterm-sc5.png", :class => "article_img" %>
+<%= image_tag "reterm/reterm-sc6.png", :class => "article_img" %>
+<%= image_tag "reterm/reterm-sc7.png", :class => "article_img" %>
 
 <p>
 Sliders (both horizontal and vertical)
@@ -113,13 +113,13 @@ Dial
 Ascii Text (with many fonts via <%= link_to "artii/figlet", "http://www.figlet.org/" %>)
 </p>
 
-<%= image_tag "reterm/reterm-sc8.png" %>
+<%= image_tag "reterm/reterm-sc8.png", :class => "article_img" %>
 
 <p>
 Images (via <%= link_to "drawille", "https://github.com/maerch/ruby-drawille" %>)
 </p>
 
-<%= image_tag "reterm/reterm-sc9.png" %>
+<%= image_tag "reterm/reterm-sc9.png", :class => "article_img" %>
 
 <hr/>
 
@@ -134,7 +134,7 @@ Images (via <%= link_to "drawille", "https://github.com/maerch/ruby-drawille" %>
 <strike>That's All Folks</strike>... but wait there is more!!! Afterall:
 <p>
 
-<%= image_tag "reterm/delorian-meme.jpg" %>
+<%= image_tag "reterm/delorian-meme.jpg", :class => "article_img" %>
 
 <p>
 For a bit of a value-add, I decided to implement a standard schema where text interfaces could be described in a JSON config file and loaded by the framework, similar to xml schemas which <%= link_to "GTK", "https://en.wikipedia.org/wiki/GTK%2B" %> and <%= link_to "Android", "https://developer.android.com/guide/topics/ui/declaring-layout.html" %> use for their interfaces. One can simply describe their interface in JSON and the framework will instantiate the corresponding text interface:
@@ -157,7 +157,7 @@ For a bit of a value-add, I decided to implement a standard schema where text in
 }
 <% end %>
 
-<%= image_tag "reterm/reterm-sc10.png" %>
+<%= image_tag "reterm/reterm-sc10.png", :class => "article_img" %>
 
 <p>
 To assist in generating this schema, I implemented a graphical designer, where components can be dragged and dropped into a 2D canvas to layout the interface.
@@ -166,13 +166,13 @@ To assist in generating this schema, I implemented a graphical designer, where c
 <p>That's right, <b>you can now use a GUI based application to design a text-based interface</b>.
 </p>
 
-<%= image_tag "reterm/retro-meme.jpg" %>
+<%= image_tag "reterm/retro-meme.jpg", :class => "article_img" %>
 
 <p>
 The Designer itself can be found in the same repo as the RETerm project, loaded in the "designer/" subdir.
 </p>
 
-<%= image_tag "reterm/reterm-designer.png", :title => "RETerm Designer" %>
+<%= image_tag "reterm/reterm-designer.png", :title => "RETerm Designer", :class => "article_img" %>
 
 <p>
 To use if you need to install <%= link_to "visualruby", "http://visualruby.net/" %> (a high level wrapper to <%= link_to "ruby-gnome", "https://ruby-gnome2.osdn.jp/" %>) like so:

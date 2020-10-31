@@ -10,7 +10,7 @@ tags:
 With the plethora of languages available to developers, I wanted to do a quick follow-up post as to why given my experience in many different environments, Ruby is still the goto language for all my computational needs!
 </p>
 
-<%= image_tag "prg_mtn.jpg" %>
+<%= image_tag "prg_mtn.jpg", :class => "article_img" %>
 
 <p>
 While different languages offer different solutions in terms of syntax support, memory managment, runtime guarantees, and execution flows; the underlying arithmatic, logical, and I/O hardware being controlled is the same. Thus in theory, given enough time and optimization the performance differences between languages should go to 0 as computational power and capacity increases / goes to infinity (yes, yes, Moore's law and such, but lets ignore that for now).
@@ -30,7 +30,7 @@ Of course different classes of problem domains impose their own requirements,
 But given the rapid rate of hardware performance in recent years, whole classes of problems which were previously limited to 'lower-level' languages such as C and C++ are now able to be feasbily implemented in higher level languages.
 </p>
 
-<%= image_tag "computer_power.gif" %>
+<%= image_tag "computer_power.gif", :class => "article_img" %>
 
 <p>
 (<%= link_to "source", "https://www.frc.ri.cmu.edu/~hpm/talks/revo.slides/power.aug.curve/power.aug.html" %>)
@@ -62,17 +62,17 @@ Ruby also provides logical flow control constructs not seen in many other langua
 <ul>
   <li>The <b>unless</b> keyword, simply evaluating to <b>if not</b>
     <% code("ruby") do %>
-      file = File.open("/tmp/foobar", "w")
-      file.write("Hello World") unless file.exist?
+  file = File.open("/tmp/foobar", "w")
+  file.write("Hello World") unless file.exist?
     <% end %>
   </li>
   <li>Methods are allowed to end with <b>?</b> and <b>!</b> which is great for specifying immutable methods (eg. <b>Socket.open?</b>), mutable methods and/or methods that can thrown an exception (eg. <b>DBRecord.save!</b>)</li>
   <li>Inclusive and exclusive <b>ranges</b> can be specified via parenthesis and two or three elipses. So for example:
     <% code("ruby") do %>
-      > (1..4).include?(4)
-      => true
-      > (1...4).include?(4)
-      => false
+  > (1..4).include?(4)
+  => true
+  > (1...4).include?(4)
+  => false
     <% end %>
   </li>
   <li>The <b>yield</b> keywork makes it trivial for <b>any</b> method to accept and invoke a callback during the course of its lifetime</li>
@@ -103,4 +103,4 @@ By binding block contexts, Ruby facilitates implementing tightly tailored soluti
 Finally, programming in Ruby is <b>just fun</b>. The language is condusive to expressing complex concepts elegantly, jives with many different programming paradigms and styles, and offers a quick prototype to production workflow that is intuitive for both novice and seasoned developers. Nothing quite scratches that itch like Ruby!
 </p>
 
-<%= image_tag "doge-ruby.jpg" %>
+<%= image_tag "doge-ruby.jpg", :class => "article_img" %>
