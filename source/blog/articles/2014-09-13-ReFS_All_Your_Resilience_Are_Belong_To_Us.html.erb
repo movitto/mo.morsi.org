@@ -49,29 +49,29 @@ The size of the image I analyzed was 92733440 bytes with the ReFS formatted part
 The first sector of this partition looks like:
 </p>
 
-<pre>
+<% code do %>
 byte 0x00: 00 00 00 52   65 46 53 00   00 00 00 00   00 00 00 00
 byte 0x10: 46 53 52 53   00 02 12 E8   00 00 3E 01   00 00 00 00
 byte 0x20: 00 02 00 00   80 00 00 00   01 02 00 00   0A 00 00 00
 byte 0x30: 00 00 00 00   00 00 00 00   17 85 0A 9A   C4 0A 9A 32
-</pre>
+<% end %>
 
 <p>
 Since assumably some size info needs to be here, it is possible that:
 
-<pre>
+<% code do %>
 vbr bytes 0x20-0x23 : bytes per sector    (0x0200)
 vbr bytes 0x24-0x27 : sectors per cluster (0x0080)
-</pre>
+<% end %>
 
 <p>
 Thus:
 </p>
 
-<pre>
+<% code do %>
 1 sector = 0x200 bytes = 512 bytes
 0x80 sectors/cluster * 0x200 bytes/sector = 0x10000 bytes/cluster = 65536 = 64KB/cluster
-</pre>
+<% end %>
 
 <p>
 Clusters are broken down into pages which are 0x4000 bytes in size (see <a href="http://www.williballenthin.com/forensics/refs/disk/index.html">[2]</a> for page id analysis).
@@ -81,17 +81,17 @@ Clusters are broken down into pages which are 0x4000 bytes in size (see <a href=
 In this case:
 </p>
 
-<pre>
-  0x10000 (bytes / cluster) / 0x4000 (bytes/page) = 4 pages / cluster
-</pre>
+<% code do %>
+0x10000 (bytes / cluster) / 0x4000 (bytes/page) = 4 pages / cluster
+<% end %>
 
 <p>
 Also:
 </p>
 
-<pre>
-  0x4000 (bytes/page) / 0x200 (bytes/sector) = 0x20 = 32 sectors per page
-</pre>
+<% code do %>
+0x4000 (bytes/page) / 0x200 (bytes/sector) = 0x20 = 32 sectors per page
+<% end %>
 
 
 <p>
@@ -119,17 +119,17 @@ On the images I've seen the first page id always is 0x1e, starting 0x78000 bytes
 <b>Metadata</b> pages all have a standard header which is 0x30 (48) bytes in length:
 </p>
 
-<pre>
+<% code do %>
 byte 0x00: XX XX 00 00   00 00 00 00   YY 00 00 00   00 00 00 00
 byte 0x10: 00 00 00 00   00 00 00 00   ZZ ZZ 00 00   00 00 00 00
 byte 0x20: 01 00 00 00   00 00 00 00   00 00 00 00   00 00 00 00
-</pre>
+<% end %>
 
-<pre>
+<% code do %>
 bytes 0/1 (XX XX) is the <b>page id</b> which is sequential and corresponds to the 0x4000 offset of the page
 byte 2 (YY) is the <b>sequence number</b>
 byte 0x18 (ZZ ZZ) is the <b>virtual page number</b>
-</pre>
+<% end %>
 
 <p>
 The page id is unique for every page in the FS. The virtual page number will be the same between journals / shadow pages though the sequence is incremented between those.
@@ -185,7 +185,7 @@ If the entry is a table record,
 These values can be seen in the memory structures described in [2]. An example record looks like:
 </p>
 
-<pre>
+<% code do %>
 bytes 0-3: 50 00 00 00 # attribute length
 bytes 4-7: 10 00 10 00 # key offset / key length
 bytes 8-B: 00 00 20 00 # flags / value offset
@@ -195,7 +195,7 @@ bytes 10-1F: 00 00 00 00   00 00 00 00   20 05 00 00   00 00 00 00 # key (@ offs
 bytes 20-2F: E0 02 00 00   00 00 00 00   00 00 02 08   08 00 00 00 # -|
 bytes 30-3F: 1F 42 82 34   7C 9B 41 52   00 00 00 00   00 00 00 00 #  |-value (@ offset 0x20 and length 0x30)
 bytes 40-4F: 08 00 00 00   08 00 00 00   00 05 00 00   00 00 00 00 # -|
-</pre>
+<% end %>
 
 
 <h2>Entries</h2>
@@ -260,7 +260,7 @@ ruby resilience.rb -i foo.image --offset 123456789 --table --tree
 You should get output similar to the following:
 </p>
 
-<%= link_to image_tag("resilience.png", :style => "width: 75%"), image_path("resilience.png") %>
+<%= link_to image_tag("resilience.png", :class => "article_img"), image_path("resilience.png") %>
 
 <p>
 Of course if it doesn't work it could be because there are differences between our images that are unaccounted for, in which case if you drop me a line we can tackle the issue together!

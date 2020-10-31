@@ -4,7 +4,7 @@ date: 2012-10-03
 tags: design patters, jsonrpc, rjr
 ---
 
-<%= image_tag "jsonrpc.png", :style => "float: left; margin-right: 10px;  width: 350px; height: 150px;" %>
+<%= image_tag "jsonrpc.png", :class => "article_img" %>
 
 <p>
 <a href="https://github.com/movitto/rjr">RJR</a> uses <a href="http://rubyeventmachine.com/">eventmachine</a> on the backend to process incoming messages over tcp/amqp/http/websockets/etc and dispatch json-rpc requests to registered handlers. It also employs a built in <a href="http://en.wikipedia.org/wiki/Thread_pool_pattern">thread pool</a> to hand off requests to the dispatcher so that the reactor isn't blocked. What results from combining the <a href="http://en.wikipedia.org/wiki/Reactor_pattern">reactor pattern</a> with a thread pool is a highly reliable concurrent event processing system.

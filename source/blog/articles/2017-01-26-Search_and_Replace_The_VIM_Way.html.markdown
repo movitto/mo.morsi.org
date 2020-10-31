@@ -27,9 +27,9 @@ vsearch provides two commands :VSearch and :VReplace.
 <b>VSearch</b> simply runs grep and displays the results, without interrupting the buffer you are currently editing.
 
 
-<a href="https://raw.githubusercontent.com/movitto/vim-vsearch/master/doc/vsearch.gif"><img src="https://raw.githubusercontent.com/movitto/vim-vsearch/master/doc/vsearch.gif" width="75%" height="75%"/></a>
+<a href="https://raw.githubusercontent.com/movitto/vim-vsearch/master/doc/vsearch.gif"><img src="https://raw.githubusercontent.com/movitto/vim-vsearch/master/doc/vsearch.gif" class="article_img"/></a>
 
 <b>VReplace</b> runs a search in a similar manner to VSearch but also performs and in-memory string replacement using the specified args. This is displayed to the user who is prompted for comfirmation. Upon receiving it, the plugin then executes sed and reports the results.
 
 
-<a href="https://raw.githubusercontent.com/movitto/vim-vsearch/master/doc/vreplace.gif"><img src="https://raw.githubusercontent.com/movitto/vim-vsearch/master/doc/vreplace.gif" width="75%" height="75%"/></a>
+<a href="https://raw.githubusercontent.com/movitto/vim-vsearch/master/doc/vreplace.gif"><img src="https://raw.githubusercontent.com/movitto/vim-vsearch/master/doc/vreplace.gif" class="article_img"/></a>

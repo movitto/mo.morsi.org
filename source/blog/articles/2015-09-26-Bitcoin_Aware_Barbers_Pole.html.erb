@@ -8,14 +8,16 @@ tags: bitcoin, projects, sig315
 A few months <a href="http://www.meetup.com/Syracuse-Innovators/events/220627291/">back</a> the <a href="http://sig315.org">guild</a> hosted an <a href="https://day.arduino.cc/#/">Arduino Day</a> workshop. The event was a great success, there was a large turnout, many neat presentations & demos, and much more. My project for the day was an <a href="https://en.wikipedia.org/wiki/Arduino">Arduino</a> controlled <a href="https://en.wikipedia.org/wiki/Barber's_pole">Barber's Pole</a> that would poll data from the network and activate/deactivate multiple <a href="https://en.wikipedia.org/wiki/Electroluminescent_wire">EL wires</a> attached to it. Unfortunately due to a few technical issues the project took a bit longer than originally planned and had to be sidelined. But having recently finished it up, I present the <a href="https://en.wikipedia.org/wiki/Bitcoin">Bitcoin</a> Aware Barber's Pole, now on display at the guild!
 </p>
 
-<%= link_to image_tag("barber1.jpg", :style=> "width: 65%"), "barber1.jpg" %>
+<%= link_to image_tag("barber1.jpg", :class=> "article_img"), "barber1.jpg" %>
 
 <p>
 The premise was straightforward, an <a href="https://www.arduino.cc/en/Main/ArduinoBoardDiecimila">Arduino Diecimila</a> would be used in combination with the <a href="https://www.arduino.cc/en/Main/ArduinoBoardEthernet">Ethernet Shield</a> to retrieve data from the Internet and activate one of two el-wires mounted to a pole like object. For that several materials were considered but we ended up using pvc as it was easiest to work with and was what we were going for aesthetically. Since the EL wire is driven from an AC source we used two SPDT relays to activate the circuit based on the state of the Arduino's digital pin output. The constructed circuit was simple, incorporating the necessary components to handle <a href="https://en.wikipedia.org/wiki/Flyback_diode">flyback current</a>.
 </p>
 
-<%= link_to image_tag("arduino-pole.svg",      :style => "width: 45%"),  "arduino-pole.svg" %>
-<%= link_to image_tag("barber-circuitry1.jpg", :style => "width: 45%"), "barber-circuitry1.jpg" %>
+<div class="article_imgs">
+  <%= link_to image_tag("arduino-pole.svg",      :class => "article_img"),  "arduino-pole.svg" %>
+  <%= link_to image_tag("barber-circuitry1.jpg", :class => "article_img"), "barber-circuitry1.jpg" %>
+</div>
 
 <p>
 The software component of this project is what took the most time, due to several setbacks. Perhaps the biggest was the shortage of address space we had to work with, micro-controller platforms are notorious for this, but the Diecimila only gave us <a href="https://en.wikipedia.org/wiki/List_of_Arduino_boards_and_compatible_systems#Arduino_Diecimila">16KB</a> of flash memory to use, which after what I'm assuming is space for the bootloader, shared libraries, and other logic is reserved, amounts to ~14KB of memory for the user program and data. Contrast this to modern general purpose PCs, where you'd be hard pressed to find a system with less than 2GB of memory! This had many side effects including not having enough address space to load and use the Arduino <a href="https://github.com/amcewen/HttpClient">HttpClient</a> or <a href="https://github.com/bblanchon/ArduinoJson">Json</a> libraries. Thus a very rudimentary <a href="https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol">HTTP</a> parsing and request implementation was devised so as to serve the application's needs. All and all it was very simple but specialized, only handling the edge cases we needed an nothing else.
@@ -29,7 +31,7 @@ Of course the limited address space meant we were also limited in the amount of 
 <i>In all of this you may be asking why we just didn't order a newer Arduino chip with a bigger address space to which I reply what would I do with the one that I had?!?! Plus developing for platforms with memory &amp; other restrictions introduces fun challenges of its own.</i>
 </p>
 
-<%= link_to image_tag("engineering.jpg", :style => "width: 50%"), "engineering.jpg" %>
+<%= link_to image_tag("engineering.jpg", :class => "article_img"), "engineering.jpg" %>
 
 <p>
 At one point we tried splitting the sketch into multiple modules via the Arduino IDE interface. This was done to try and better organize the project, in a more <a href="https://en.wikipedia.org/wiki/Object-oriented_design">OOD</a> fashion, but introduced more complexities than it was worth. From what I gather, most sketches are single module implementations, perhaps incorporating some external libraries via the standard mechanisms. When we attempted to deviate from this we noticed so weird behavior, perhaps as a result of the includes from centralized Arduino & supporting libraries being pulled into multiple modules. We didn't debug too far, as overall the application isn't that complex.
@@ -458,8 +460,10 @@ The actual construction of the pole consists of a short length of PVC pipe cappe
 The final setup was placed near the enterance of the Guild where anyone walking in / out could see it.
 </p>
 
-<%= link_to image_tag("barber-enterance.jpg", :style => "width: 45%"), "barber-enterance.jpg" %>
-<%= link_to image_tag("barber-closeup.jpg",   :style => "width: 25%"), "barber-closeup.jpg" %>
+<div class="article_imgs">
+  <%= link_to image_tag("barber-enterance.jpg", :class => "article_img"), "barber-enterance.jpg" %>
+  <%= link_to image_tag("barber-closeup.jpg",   :class => "article_img"), "barber-closeup.jpg" %>
+</div>
 
 <p>
 All in all it was a fun project that took a bit longer than originally planned, but when is that not the case?! Microcontrollers always prove to be unique environments, and although in this case it just amounted to some C++ development, the restricted platform presented several interesting challenges I hadn't encountered since grad school. Going forward I'm contemplating looking into the <a href="https://en.wikipedia.org/wiki/Raspberry_Pi">Raspberry Pi</a> platform for my next project as it seems to be a bit more flexible & has more address space, while still available at a great price point.

@@ -12,7 +12,7 @@ This post is intended to detail the <a href="https://en.wikipedia.org/wiki/Logic
 The LVM framework relies on the underlying 'device-mapper' library to map blocks on physical disks (called <b>physical volumes</b>) to custom constructs depending on the intent of the system administrator. Physical and other volumes can be sliced, mixed, and matched to form <b>Logical Volumes</b>, which are presented to the user as normal disks, but dispatch read / write operations to the underlying storage objects depending on configuration. The Physical and Logical Volumes are organized into <b>Volume Groups</b> for management purposes.
 </p>
 
-<%= link_to image_tag("lvm1.png", :style=>"width: 75%"), "lvm1.png" %>
+<%= link_to image_tag("lvm1.png", :class=>"article_img"), "lvm1.png" %>
 
 <p>
 To analyze a LVM instance, one could start from the bottom up, inspecting each physical volume for the on disk metadata structures, reconstructuing and using them to lookup the blocks to read and write. Physical volumes may constitute any block device Linux normally presents, there are no special restrictions, and this way LVM managed volumes can be chained together. On a recent VM, /dev/sda2 was used for the LVM managed / and /home partitions on installation, after which I extended the logical volume pool to include /dev/sdb using the recent thin pool provisioning features (more on this below).
@@ -81,7 +81,7 @@ RAW_LOCN = BinaryStruct.new([
 ])
 <% end %>
 
-<%= link_to image_tag("lvm2.png"), "lvm2.png" %>
+<%= link_to image_tag("lvm2.png", :class => "article_img"), "lvm2.png" %>
 
 <p>
 The raw LVM metadata contents areas consists of simple <a href="https://en.wikipedia.org/wiki/JSON">JSON</a>-like key / value data structs where objects, arrays, and primtive values (including strings) may be encoded. The top level of each extracted metadata contents will consist of a single key / value pair, the volume group name and encoded properties. From there logical and physical volumes are detailed. Sample metadata contents can be seen below:
@@ -273,7 +273,7 @@ This is all the data necessary to map logical volume lookups to normal / striped
 To lookup a logical address, first determine which logical volume segment range the address falls into. Segments boundries are specified via extents whose size is given in the volume group metadata (note this is represnted in sectors, or 512-byte blocks). From there it's a simple matter of reading the blocks off the physical volume segments given by the specified stripe id and offset, being sure to correct map positional start / stop offsets.
 </p>
 
-<%= link_to image_tag("lvm3.png"), "lvm3.png" %>
+<%= link_to image_tag("lvm3.png", :class => "article_img"), "lvm3.png" %>
 
 <p>
 The process gets a little more complicated for thinly provisioned volumes, which are a relatively new addition to the LVM framework where logical volumes marked as '<b>thin</b>' do not directly map to physical extents but rather are <b>pooled</b> together via a mapping structure and shared data partition. This allows the centralized partition to grow / shrink on demand and the decoupling of pool properties from actual underlying data space availability.

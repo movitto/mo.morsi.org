@@ -1,3 +1,15 @@
+@media (max-width: 600px) {
+  .hide_on_mobile{
+    display: none;
+  }
+}
+
+@media (min-width: 600px) {
+  .only_on_mobile{
+    display: none;
+  }
+}
+
 body {
   background-color: black;
   color: #0D0C1C;
@@ -14,58 +26,6 @@ a {
   &:focus,
   &:hover {
     color: rgba(#000, 0.6);
-  }
-}
-
-.middleman-logo {
-  margin-bottom: 1rem;
-  width: 10rem;
-}
-
-.article{
- padding: 5px 10px 10px 15px;
- margin: 10px;
- background-color: white;
- box-shadow: 0 0 10px gray;
- border-radius: 5px;
-}
-
-.article_header{
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.article_date{
-  font-weight: bold;
-  text-align: center;
-}
-
-.article_tags{
-  display: flex;
-  justify-content: flex-end;
-}
-
-.article_tags a{
-  text-decoration: none;
-}
-
-.article_img{
-  max-width: 100%;
-}
-
-.article_imgs{
-  display: flex;
-}
-
-.article_imgs a,
-.article_imgs img{
-  padding: 5px;
-}
-
-@media (max-width: 600px) {
-  .article_imgs{
-    flex-direction: column;
   }
 }
 
@@ -121,29 +81,51 @@ a {
   text-decoration: none;
 }
 
-#search_toggle {
-  position: fixed;
-  bottom: 0;
-  right: 0;
-
-  padding-left: 5px;
-  padding-right: 5px;
-  border-radius: 5px;
-  background-color: #0C141F;
-  color: #D8DAE7;
+.article{
+ padding: 5px 10px 10px 15px;
+ margin: 10px;
+ background-color: white;
+ box-shadow: 0 0 10px gray;
+ border-radius: 5px;
 }
 
-#search_toggle p {
-   // turn unicode symbol into search sign
-  -webkit-transform: rotate(45deg);
-  -moz-transform:    rotate(45deg);
-  -o-transform:      rotate(45deg);
-  transform:         rotate(45deg);
+.article_header{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-  padding: 0;
-  margin: 0;
+.article_date{
+  font-weight: bold;
+  text-align: center;
+}
 
-  cursor: pointer;
+.article_tags{
+  display: flex;
+  justify-content: flex-end;
+}
+
+.article_tags a{
+  text-decoration: none;
+}
+
+.article_img{
+  max-width: 100%;
+}
+
+.article_imgs{
+  display: flex;
+}
+
+.article_imgs a,
+.article_imgs img{
+  padding: 5px;
+}
+
+@media (max-width: 600px) {
+  .article_imgs{
+    flex-direction: column;
+  }
 }
 
 .hljs{

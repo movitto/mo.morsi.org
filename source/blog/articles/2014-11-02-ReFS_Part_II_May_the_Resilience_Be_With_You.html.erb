@@ -8,18 +8,18 @@ Not too long after the last <a href="http://mo.morsi.org/blog/node/386">post</a>
 
 After generating a new <a href="http://morsi.org/files/refs.img">image</a> I was able to make alot of headway on the analysis. To start off a valid metadata page address became immediately aparent on page <b>0x1e</b>. Recall that page 0x1e is the first metadata page residing at a fixed / known location after the start of the partition:
 
-<pre>
+<% code do %>
   bytes 0xA0-A7: 90 19 00 00 00 00 00 00
         0xA8-AF: 67 31 01 00 00 00 00 00
-</pre>
+<% end %>
 
 Pages 0x1990 and 0x13167 are valid metadata pages containing similar contents. Most likely one is a backup of the other. Assuming the first record is the primary copy (0x1990).
 
 <b>Note</b> this address appears at byte 0xA0 on page 0x1E. Byte 0xA0 is referenced earlier on in the page:
 
-<pre>
+<% code do %>
   byte 0x50: A0 00 00 00  02 00 00 00  B0 00 00 00  18 00 00 00
-</pre>
+<% end %>
 
 So it is possible that this page address is not stored at a static location but at a offset referenced earlier in the page.
 
@@ -30,22 +30,22 @@ This page contains 6 rows of 24-byte entries, each containing a valid metadata p
 
 Early on in the page the table header resides:
 
-<pre>
+<% code do %>
   byte 0x58: 06 00 00 00   98 00 00 00
              B0 00 00 00   C8 00 00 00
              E0 00 00 00   F8 00 00 00
              10 01 00 00
-</pre>
+<% end %>
 
 06 is the number of records and each dword after this contains the offset from the very start of the page to each table record:
 
-<pre>
+<% code do %>
   table offsets: 98, B0, C8, E0, F8, 110
-</pre>
+<% end %>
 
 Each table record has a page id, flags, and some other unique qword of some sort (perhaps an object id or checksum),
 
-<pre>
+<% code do %>
   page ids:      corresponding virtual page id values:
     2c2               2
      22               E
@@ -53,7 +53,7 @@ Each table record has a page id, flags, and some other unique qword of some sort
      29               C
     2c8               1
     2c5               3
-</pre>
+<% end %>
 
 These correspond to the latest revisions of the critical system pages highlighted in previous analysis.
 
@@ -106,12 +106,12 @@ When iterating over directory list records, the record flags seem to indicate re
 
 The intent of each matching directory list record can be furthur deduced by the first 4 bytes in its key which may be:
 
-<pre>
+<% code do %>
   0x00000010 - directory information
   0x00020030 - subdirectory - name will be the rest of the key
   0x00010030 - file - name will be the rest of the key
   0x80000020 - ???
-</pre>
+<% end %>
 
 In the case of subdirectories, the first 16 bytes of the record value will contain the directory object id. The object table can be used to look this up to access its page.
 
@@ -129,7 +129,7 @@ After this there exists several related metadata attributes.
 
 The second attribute (starting at byte 0xA8 of the file table):
 
-<pre>
+<% code do %>
   20 00 00 00 # length of this record
   A0 01 00 00 # length of this record + next record
   D4 00 00 00 # amount of padding after next record
@@ -138,29 +138,29 @@ The second attribute (starting at byte 0xA8 of the file table):
   01 00 00 00 # number of records ?
   78 02 00 00 # offset to padding
   00 00 00 00
-</pre>
+<% end %>
 
 The next record looks like a standard table record as we've seen before:
 
-<pre>
+<% code do %>
   80 01 00 00 # length of this record, note this equals 2nd dword value of last record minus 0x20
   10 00 0E 00 # offset to key / key length
   08 00 20 00 # flags / offset to value
   60 01 00 00 # value length / padding
-</pre>
+<% end %>
 
 The key of this record starts at 0x10 of this attribute and is 0x0E length:
 
-<pre>
+<% code do %>
   60 01 00 00
   00 00 00 00
   80 00 00 00
   00 00 00
-</pre>
+<% end %>
 
 The value starts at attribute offset 0x20 and is of length 0x160. This value contains yet another embeded attribute:
 
-<pre>
+<% code do %>
   88 00 00 00 # length of attribute
   28 00 01 00
   01 00 00 00
@@ -181,13 +181,13 @@ The value starts at attribute offset 0x20 and is of length 0x160. This value con
   2C 05 02 00 # length of the file
   00 00 00 00
   # 0's for the rest of this attribute
-</pre>
+<% end %>
 
 The file length is represented twice in this attribute (perhaps allocated & actual lengths)
 
 The next attribute is as follows:
 
-<pre>
+<% code do %>
   20 00 00 00 # length of attribute
   50 00 00 00 # length of this attribute + length of next attribute
   84 00 00 00 # amount of padding after this attribute
@@ -196,13 +196,13 @@ The next attribute is as follows:
   01 00 00 00 # ?
   D8 00 00 00 # offset to padding
   00 00 00 00
-</pre>
+<% end %>
 
 The format of this attribute looks similar to the second in the file (see above) and seems to contain information about the next record(s). Perhaps related to the 'bucket'  concept discussed <a href="http://www.williballenthin.com/forensics/refs/memory/index.html">here</a>
 
 At first glance the next attribute looks like another standard record but the key and value offsets are the same. This attribute contains the starting page # of the file content
 
-<pre>
+<% code do %>
  30 00 00 00 # length of this record
  10 00 10 00 # key offset / length ?
  00 00 10 00 # flags / value offset ?
@@ -215,7 +215,7 @@ At first glance the next attribute looks like another standard record but the ke
  00 00 00 00
  00 00 00 08
  00 00 00 00 
-</pre>
+<% end %>
 
 For larger files there are more records following this attribute, each of 0x30 length, w/ the same record header. Many of the values contain the pages containing the file contents, though only some have the same format as the one above.
 
@@ -232,11 +232,11 @@ Using the above analysis I threw together a ReFS file lister that iterates over 
 
 Use it like so:
 
-<pre>
+<% code do %>
 ruby rels.rb --image foo.image --offset 123456789
-</pre>
+<% end %>
 
-<%= link_to image_tag("rels.png", :style => "width: 75%"), image_path("rels.png") %>
+<%= link_to image_tag("rels.png", :class => "article_img"), image_path("rels.png") %>
 
 <h2>Next Steps</h2>
 Besides verifying all of the above, the next major action items are to extract the pages / clusters containing file data as well as all file metadata.

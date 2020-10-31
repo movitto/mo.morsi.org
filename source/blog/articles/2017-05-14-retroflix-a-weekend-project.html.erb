@@ -13,10 +13,6 @@ It can be found <%= link_to "here", "https://github.com/movitto/retroflix/" %> a
 </p>
 
 <div class="article_imgs">
-<%= link_to image_tag("https://raw.githubusercontent.com/wiki/movitto/retroflix/screens/my_library.png",
-                      :class => "article_img"),
-                      "https://raw.githubusercontent.com/wiki/movitto/retroflix/screens/my_library.png" %>
-
 <%= link_to image_tag("https://raw.githubusercontent.com/wiki/movitto/retroflix/screens/game_info.png",
                       :class => "article_img"),
                       "https://raw.githubusercontent.com/wiki/movitto/retroflix/screens/game_info.png" %>
@@ -42,4 +38,10 @@ As with everything else, it's still a work in progress, but it already sufficing
 </p>
 
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/QhH_iibOJv0" frameborder="0"></iframe>
+<div class="hide_on_mobile">
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/QhH_iibOJv0" frameborder="0"></iframe>
+</div>
+
+<div class="only_on_mobile">
+  <iframe width="320" height="180" src="https://www.youtube.com/embed/QhH_iibOJv0" frameborder="0"></iframe>
+</div>
