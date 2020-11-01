@@ -110,7 +110,7 @@ a {
 }
 
 .article_img{
-  max-width: 100%;
+  max-width: #{"min(100%, 750px)"};
 }
 
 .article_imgs{
