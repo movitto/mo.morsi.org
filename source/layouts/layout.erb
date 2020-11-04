@@ -47,7 +47,7 @@
           <%= yield %>
 
           <%= partial :article_footer,
-                      :locals => {:article => article} %>
+                      :locals => {:article => current_page} %>
         </div>
 
       <% else %>
